@@ -5,7 +5,33 @@ if ! command -v brew &> /dev/null
 then
   echo "Installing Homebrew..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+else
+  echo "Upgrading Homebrew and updating packages..."
+  brew upgrade && brew update
 fi
 
 # install homebrew packages (see Brewfile)
+echo "Installing homebrew packages..."
 brew bundle
+
+# install ruby
+if ! command -v rbenv &> /dev/null
+then
+  echo "Installing Ruby and rbenv..."
+  # to list all latest stable releases: rbenv install -l
+  rbenv install 3.4.7 -s
+  rbenv global 3.4.7
+else
+  echo "Using ruby `rbenv version` and `rbenv --version`"
+fi
+
+# install global npm packages
+# TODO: replace this with globalling install all depenencies listed in package.json
+if ! command -v gemini &> /dev/null
+then
+  echo "Installing Gemini..."
+  npm install --no-audit --no-fund --loglevel=error -g @google/gemini-cli
+else
+  echo "Updating Gemini..."
+  npm update --no-audit --no-fund --loglevel=error -g @google/gemini-cli
+fi
