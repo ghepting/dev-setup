@@ -1,6 +1,6 @@
 # Gary's Automated Dev Setup
 
-### Install Homebrew and packages
+## Install Homebrew and packages
 
 Run setup script:
 
