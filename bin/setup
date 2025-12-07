@@ -25,13 +25,5 @@ else
   echo "Using ruby `rbenv version` and `rbenv --version`"
 fi
 
-# install global npm packages
-# TODO: replace this with globalling install all depenencies listed in package.json
-if ! command -v gemini &> /dev/null
-then
-  echo "Installing Gemini..."
-  npm install --no-audit --no-fund --loglevel=error -g @google/gemini-cli
-else
-  echo "Updating Gemini..."
-  npm update --no-audit --no-fund --loglevel=error -g @google/gemini-cli
-fi
+# install global npm packages in package.json
+./bin/install-global-npm-deps.sh
