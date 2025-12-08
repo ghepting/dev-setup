@@ -11,6 +11,15 @@ WHITE="\e[37m"
 GRAY="\e[38m"
 NC="\e[0m" # No Color (Reset)
 
+# prompt for confirmation before continuing
+echo -e "${YELLOW}WARNING: This script will completely uninstall the tools and configurations installed by the dev setup. I trust you know what you're doing!${NC}"
+read -k 1 -r "REPLY?Are you sure you want to proceed with the uninstallation? (y/N) "
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo -e "${BLUE}Uninstallation aborted.${NC}"
+    exit 0
+fi
+
 # uninstall ruby & rbenv
 brew uninstall rbenv ruby-build
 rm -rf ~/.rbenv
