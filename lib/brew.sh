@@ -16,13 +16,12 @@ install_homebrew() {
 
 install_homebrew_path() {
   # ensure brew bins are added to $PATH
-  ZSHRC_FILE="$HOME/.zshrc"
   BREW_PREFIX_CMD='export PATH="$(brew --prefix)/bin:$PATH"'
 
   if ! grep -qF "$BREW_PREFIX_CMD" "$ZSHRC_FILE"
   then
-    echo "" >> "$ZSHRC_FILE"
-    echo "# Add Homebrew bin to PATH" >> "$ZSHRC_FILE"
+    echo '' >> "$ZSHRC_FILE"
+    echo '# homebrew' >> "$ZSHRC_FILE"
     echo "$BREW_PREFIX_CMD" >> "$ZSHRC_FILE"
     echo -e "${GREEN}Homebrew PATH line added to $ZSHRC_FILE.${NC}"
     RESTART_REQUIRED=true
@@ -30,7 +29,7 @@ install_homebrew_path() {
 }
 
 install_brew_bundle() {
-  # install homebrew packages (see Brewfile)
-  echo -e "${WHITE}Installing/upgrading all dependencies from the Brewfile...${NC}"
+  # install homebrew packages
+  echo -e "${WHITE}Bundling brew...${NC}"
   brew bundle --upgrade -q
 }

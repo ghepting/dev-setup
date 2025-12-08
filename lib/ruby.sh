@@ -15,9 +15,18 @@ install_rbenv_and_ruby() {
     echo -e "${BLUE}Using $(rbenv --version)${NC}"
   fi
 
-  RUBY_VERSION=$(cat .ruby-version)
+  # add rbenv init to .zshrc
+  if ! grep -q "rbenv init" "$ZSHRC_FILE"
+  then
+    echo '' >> "$ZSHRC_FILE"
+    echo '# rbenv' >> "$ZSHRC_FILE"
+    echo 'eval "$(rbenv init -)"' >> "$ZSHRC_FILE"
+    echo -e "${GREEN}Added rbenv init to .zshrc${NC}"
+    RESTART_REQUIRED=true
+  fi
 
   # install ruby
+  RUBY_VERSION=$(cat .ruby-version)
   if rbenv version-name = "$RUBY_VERSION" &> /dev/null
   then
     echo -e "${BLUE}Using ruby $(rbenv version-name)${NC}"

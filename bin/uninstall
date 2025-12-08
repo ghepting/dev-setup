@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+ZSHRC_FILE="$HOME/.zshrc"
+
 # colors
 RED="\e[31m"
 GREEN="\e[32m"
@@ -43,7 +45,6 @@ rm -rf ~/.nvm
 rm -rf ~/.nodeenv
 
 # cleanup .zshrc updates
-ZSHRC_FILE="$HOME/.zshrc"
 if [ -f "$ZSHRC_FILE" ]
 then
   # backup .zshrc before modification for safety

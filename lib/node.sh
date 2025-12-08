@@ -11,6 +11,7 @@ install_nvm_and_node() {
 
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 
+    # source nvm
     if [ -s "$NVM_DIR/nvm.sh" ]
     then
       . "$NVM_DIR/nvm.sh"
@@ -20,6 +21,18 @@ install_nvm_and_node() {
       echo -e "${RED}Failed to install nvm${NC}"
       exit 1
     fi
+  fi
+
+  # add nvm to ~/.zshrc
+  if ! grep -q "NVM_DIR" "$ZSHRC_FILE"
+  then
+    echo '' >> "$ZSHRC_FILE"
+    echo '# nvm' >> "$ZSHRC_FILE"
+    echo 'export NVM_DIR="$HOME/.nvm"' >> "$ZSHRC_FILE"
+    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> "$ZSHRC_FILE"
+    echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> "$ZSHRC_FILE"
+    echo -e "${GREEN}Successfully added nvm to path${NC}"
+    RESTART_REQUIRED=true
   fi
 
   # install node & npm

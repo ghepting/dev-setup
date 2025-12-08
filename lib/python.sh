@@ -21,9 +21,13 @@ install_pyenv_and_python() {
   fi
 
   # add pyenv init to .zshrc
-  if ! grep -q "pyenv init" ~/.zshrc
+  if ! grep -q "pyenv init" "$ZSHRC_FILE"
   then
-    echo "eval \"\$(pyenv init -)\"" >> ~/.zshrc
+    echo '' >> "$ZSHRC_FILE"
+    echo '# pyenv' >> "$ZSHRC_FILE"
+    echo 'export PYENV_ROOT="$HOME/.pyenv"' >> "$ZSHRC_FILE"
+    echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> "$ZSHRC_FILE"
+    echo 'eval "$(pyenv init - zsh)"' >> "$ZSHRC_FILE"
     echo -e "${GREEN}Added pyenv init to .zshrc${NC}"
     RESTART_REQUIRED=true
   fi
