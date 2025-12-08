@@ -18,6 +18,10 @@ then
   echo -e "${WHITE}Installing Homebrew...${NC}"
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
   RESTART_REQUIRED=true
+  if command -v brew &> /dev/null;
+  then
+    export PATH="$(brew --prefix)/bin:$PATH"
+  fi
 else
   echo -e "${WHITE}Updating Homebrew...${NC}"
   brew update &> /dev/null
@@ -34,7 +38,6 @@ else
     echo "# Add Homebrew bin to PATH" >> "$ZSHRC_FILE"
     echo "$BREW_PREFIX_CMD" >> "$ZSHRC_FILE"
     echo -e "${GREEN}Homebrew PATH line added to $ZSHRC_FILE.${NC}"
-    source "$HOME/.zshrc"
     RESTART_REQUIRED=true
 fi
 
@@ -120,8 +123,11 @@ if [ -s "$NVM_DIR/nvm.sh" ]; then
 else
   echo -e "${WHITE}Installing nvm...${NC}"
 
-  if brew install nvm -q &> /dev/null; then
-    echo -e "${GREEN}Successfully installed nvm${NC}"
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+  if [ -s "$NVM_DIR/nvm.sh" ]; then
+    . "$NVM_DIR/nvm.sh"
+    echo -e "${GREEN}Successfully installed nvm $(nvm --version)${NC}"
     RESTART_REQUIRED=true
   else
     echo -e "${RED}Failed to install nvm${NC}"

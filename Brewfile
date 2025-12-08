@@ -1,5 +1,4 @@
 # node
-brew "nvm"
 brew "node"
 
 # ruby
