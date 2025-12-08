@@ -1,6 +1,3 @@
-# node
-brew "node"
-
 # ruby
 brew "rbenv"
 brew "ruby-build"

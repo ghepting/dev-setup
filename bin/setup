@@ -98,22 +98,6 @@ else
   echo -e "${BLUE}Using python $PYTHON_VERSION / pip $PIP_VERSION${NC}"
 fi
 
-# install node & npm
-if ! command -v npm &> /dev/null
-then
-  echo -e "${WHITE}Installing npm...${NC}"
-  if brew install node -q &> /dev/null
-  then
-    echo -e "${GREEN}Successfully installed node/npm${NC}"
-    RESTART_REQUIRED=true
-  else
-    echo -e "${RED}Failed to install node/npm${NC}"
-    exit 1
-  fi
-else
-  echo -e "${BLUE}Using node $(node --version) / npm $(npm --version)${NC}"
-fi
-
 # install nvm
 export NVM_DIR="$HOME/.nvm"
 if [ -s "$NVM_DIR/nvm.sh" ]; then
@@ -133,6 +117,22 @@ else
     echo -e "${RED}Failed to install nvm${NC}"
     exit 1
   fi
+fi
+
+# install node & npm
+NODE_VERSION=$(cat .nvmrc 2> /dev/null || echo "lts/*")
+if [[ "$(node -v)" != "$NODE_VERSION" ]]; then
+  echo -e "${WHITE}Installing node $NODE_VERSION via nvm...${NC}"
+  if nvm install "$NODE_VERSION" -s; then
+    nvm alias default "$NODE_VERSION"
+    echo -e "${GREEN}Successfully installed node $NODE_VERSION${NC}"
+    RESTART_REQUIRED=true
+  else
+    echo -e "${RED}Failed to install node $NODE_VERSION via nvm${NC}"
+    exit 1
+  fi
+else
+  echo -e "${BLUE}Using node $(node -v)${NC}"
 fi
 
 # install global npm packages
