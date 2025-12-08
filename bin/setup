@@ -10,11 +10,14 @@ CYAN="\e[36m"
 WHITE="\e[37m"
 NC="\e[0m" # No Color (Reset)
 
+RESTART_REQUIRED=false
+
 # install homebrew
 if ! command -v brew &> /dev/null
 then
   echo -e "${WHITE}Installing Homebrew...${NC}"
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  RESTART_REQUIRED=true
 else
   echo -e "${WHITE}Updating Homebrew...${NC}"
   brew update &> /dev/null
@@ -32,6 +35,7 @@ else
     echo "$BREW_PREFIX_CMD" >> "$ZSHRC_FILE"
     echo -e "${GREEN}Homebrew PATH line added to $ZSHRC_FILE.${NC}"
     source "$HOME/.zshrc"
+    RESTART_REQUIRED=true
 fi
 
 # install homebrew packages (see Brewfile)
@@ -45,6 +49,7 @@ then
   if brew install rbenv -q &> /dev/null
   then
     echo -e "${GREEN}Successfully installed rbenv${NC}"
+    RESTART_REQUIRED=true
   else
     echo -e "${RED}Failed to install rbenv${NC}"
     exit 1
@@ -64,6 +69,7 @@ else
   if rbenv install $RUBY_VERSION -s && rbenv global $RUBY_VERSION &> /dev/null
   then
     echo -e "${GREEN}Successfully installed ruby $RUBY_VERSION via rbenv${NC}"
+    RESTART_REQUIRED=true
   else
     echo -e "${RED}Failed to install ruby $RUBY_VERSION via rbenv${NC}"
     exit 1
@@ -78,6 +84,7 @@ then
   if brew install python -q &> /dev/null
   then
     echo -e "${GREEN}Successfully installed python${NC}"
+    RESTART_REQUIRED=true
   else
     echo -e "${RED}Failed to install python${NC}"
     exit 1
@@ -88,13 +95,14 @@ else
   echo -e "${BLUE}Using python $PYTHON_VERSION / pip $PIP_VERSION${NC}"
 fi
 
-# install node & npm (if now already installed from Brewfile)
+# install node & npm
 if ! command -v npm &> /dev/null
 then
   echo -e "${WHITE}Installing npm...${NC}"
   if brew install node -q &> /dev/null
   then
     echo -e "${GREEN}Successfully installed node/npm${NC}"
+    RESTART_REQUIRED=true
   else
     echo -e "${RED}Failed to install node/npm${NC}"
     exit 1
@@ -105,10 +113,7 @@ fi
 
 # install nvm
 export NVM_DIR="$HOME/.nvm"
-# 2. Check if the NVM source file exists
 if [ -s "$NVM_DIR/nvm.sh" ]; then
-  # 3. If it exists, source the script to load the NVM functions
-  # Using a single dot (.) is a common shorthand for the 'source' command
   . "$NVM_DIR/nvm.sh"
 
   echo -e "${BLUE}Using nvm $(nvm --version)${NC}"
@@ -117,8 +122,7 @@ else
 
   if brew install nvm -q &> /dev/null; then
     echo -e "${GREEN}Successfully installed nvm${NC}"
-    echo -e "${WHITE}Please restart your terminal to use it.${NC}"
-    exit 1
+    RESTART_REQUIRED=true
   else
     echo -e "${RED}Failed to install nvm${NC}"
     exit 1
@@ -139,6 +143,7 @@ then
   if $NPM_EXECUTABLE $NPM_INSTALL_ARGS $NPM_GEMINI_PACKAGE
   then
     echo -e "${GREEN}Successfully installed $NPM_GEMINI_PACKAGE${NC}"
+    RESTART_REQUIRED=true
   else
     echo -e "${RED}Failed to install $NPM_GEMINI_PACKAGE${NC}"
     exit 1
@@ -171,4 +176,8 @@ else
 fi
 
 echo -e "${GREEN}Dev setup completed successfully${NC}"
+if $RESTART_REQUIRED
+then
+  echo -e "${GRAY}New utilities have been installed. Please restart your terminal to activate them.${NC}"
+fi
 exit 0
