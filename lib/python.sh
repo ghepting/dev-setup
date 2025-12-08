@@ -1,20 +1,57 @@
-install_python_and_pip() {
-  # install python/pip3
-  PYTHON_EXECUTABLE="$(brew --prefix)/bin/python3"
-  if ! command -v $PYTHON_EXECUTABLE &> /dev/null
+install_pyenv_and_python() {
+  if ! command -v pyenv &> /dev/null
   then
-    echo -e "${WHITE}Installing python...${NC}"
-    if brew install python -q &> /dev/null
+    echo -e "${WHITE}Installing pyenv...${NC}"
+    if brew install pyenv -q &> /dev/null
     then
-      echo -e "${GREEN}Successfully installed python${NC}"
+      echo -e "${GREEN}Successfully installed pyenv${NC}"
       RESTART_REQUIRED=true
     else
-      echo -e "${RED}Failed to install python${NC}"
+      echo -e "${RED}Failed to install pyenv${NC}"
       exit 1
     fi
   else
-    PYTHON_VERSION=$($PYTHON_EXECUTABLE -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')")
-    PIP_VERSION=$($PYTHON_EXECUTABLE -c "import pip; print(pip.__version__)")
-    echo -e "${BLUE}Using python $PYTHON_VERSION / pip $PIP_VERSION${NC}"
+    echo -e "${BLUE}Using $(pyenv --version)${NC}"
+  fi
+
+  # run 'eval "$(pyenv init -)"' to use pyenv commands in the current script session
+  if command -v pyenv &> /dev/null
+  then
+    eval "$(pyenv init -)"
+  fi
+
+  # add pyenv init to .zshrc
+  if ! grep -q "pyenv init" ~/.zshrc
+  then
+    echo "eval \"\$(pyenv init -)\"" >> ~/.zshrc
+    echo -e "${GREEN}Added pyenv init to .zshrc${NC}"
+    RESTART_REQUIRED=true
+  fi
+
+  # look for a .python-version file, otherwise default to a stable 3.x version
+  PYTHON_VERSION=$(cat .python-version 2> /dev/null || echo "3.14.2")
+
+  # check if the desired version is already installed by pyenv
+  if pyenv versions --bare | grep -q "^$PYTHON_VERSION$"
+  then
+    echo -e "${BLUE}Using python $PYTHON_VERSION${NC}"
+  else
+    echo -e "${WHITE}Installing python $PYTHON_VERSION...${NC}"
+    if pyenv install $PYTHON_VERSION &> /dev/null
+    then
+      echo -e "${GREEN}Successfully installed python $PYTHON_VERSION${NC}"
+      RESTART_REQUIRED=true
+      # set global default and report
+      pyenv global "$PYTHON_VERSION" &> /dev/null
+
+      PYTHON_EXECUTABLE=$(pyenv which python)
+      PYTHON_VERSION=$($PYTHON_EXECUTABLE --version 2>/dev/null | awk '{print $2}')
+      PIP_VERSION=$($PYTHON_EXECUTABLE -m pip --version 2>/dev/null | awk '{print $2}')
+
+      echo -e "${BLUE}Default python set to $PYTHON_VERSION / pip $PIP_VERSION${NC}"
+    else
+      echo -e "${RED}Failed to install python $PYTHON_VERSION${NC}"
+      exit 1
+    fi
   fi
 }

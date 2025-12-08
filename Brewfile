@@ -3,7 +3,7 @@ brew "rbenv"
 brew "ruby-build"
 
 # python
-brew "python"
+brew "pyenv"
 
 # containers
 cask "docker-desktop"

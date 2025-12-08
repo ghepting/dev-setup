@@ -1,0 +1,67 @@
+#!/usr/bin/env zsh
+
+# colors
+RED="\e[31m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+BLUE="\e[34m"
+MAGENTA="\e[35m"
+CYAN="\e[36m"
+WHITE="\e[37m"
+GRAY="\e[38m"
+NC="\e[0m" # No Color (Reset)
+
+# uninstall ruby & rbenv
+brew uninstall rbenv ruby-build
+rm -rf ~/.rbenv
+rm -rf ~/Library/Caches/ruby
+
+# uninstall python & pyenv
+brew uninstall pyenv
+rm -rf ~/.pyenv
+rm -rf ~/Library/Caches/pip
+
+# uninstall global npm packages
+npm uninstall -g @google/gemini-cli
+npm uninstall -g npm
+rm -rf ~/.npm
+rm -rf ~/Library/Caches/npm
+rm -rf ~/Library/Caches/node-gyp
+
+# uninstall node & nvm
+nvm uninstall node
+rm -rf ~/.nvm
+rm -rf ~/.nodeenv
+
+# cleanup .zshrc updates
+ZSHRC_FILE="$HOME/.zshrc"
+if [ -f "$ZSHRC_FILE" ]
+then
+  # backup .zshrc before modification for safety
+  TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+  BACKUP_FILE="$ZSHRC_FILE.backup.$TIMESTAMP"
+  cp "$ZSHRC_FILE" "$BACKUP_FILE"
+  echo -e "${GRAY}Created backup of $ZSHRC_FILE ($BACKUP_FILE)${NC}"
+
+  # remove homebrew path
+  sed -i '' '/# Add Homebrew bin to PATH/d' "$ZSHRC_FILE"
+  sed -i '' '/export PATH="$(brew --prefix)\/bin:$PATH"/d' "$ZSHRC_FILE"
+
+  # remove pyenv init
+  sed -i '' '/eval "$(pyenv init -)"/d' "$ZSHRC_FILE"
+
+  # remove nvm init
+  sed -i '' '/export NVM_DIR="\$HOME\/.nvm"/d' "$ZSHRC_FILE"
+  sed -i '' '/\[ -s "\$NVM_DIR\/nvm.sh" \]/d' "$ZSHRC_FILE"
+  sed -i '' '/\[ -s "\$NVM_DIR\/bash_completion" \]/d' "$ZSHRC_FILE"
+
+  echo -e "${GRAY}Removed Homebrew path, pyenv init, and nvm init from $ZSHRC_FILE${NC}"
+fi
+
+# uninstall Homebrew - see: https://github.com/homebrew/install#uninstall-homebrew
+NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"
+rm -rf ~/Library/Caches/Homebrew
+
+echo -e "${GREEN}Uninstall completed successfully${NC}"
+echo -e "${GRAY}You may need to restart your terminal to complete the uninstall${NC}"
+exit 0

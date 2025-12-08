@@ -12,30 +12,33 @@ NC="\e[0m" # No Color (Reset)
 
 RESTART_REQUIRED=false
 
-# Source the utility functions
+# source utility functions
 source "./lib/brew.sh"
 source "./lib/ruby.sh"
 source "./lib/python.sh"
 source "./lib/node.sh"
 source "./lib/packages.sh"
 
-# 1. Homebrew
-install_homebrew && \
-  # setup PATH
-  install_homebrew_path && \
-  # install brew packages
-  install_brew_bundle
+# homebrew
+install_homebrew
 
-# 2. Ruby and rbenv
+# homebrew path
+install_homebrew_path
+
+# brew packages
+install_brew_bundle
+
+# ruby and rbenv
 install_rbenv_and_ruby
 
-# 3. Python and pip
-install_python_and_pip
+# python and pyenv
+install_pyenv_and_python
 
-# 4. Node, npm, and NVM
-install_nvm_and_node && \
-  # 5. Global npm packages
-  install_global_npm_packages
+# node/npm, and nvm
+install_nvm_and_node
+
+# global npm packages
+install_global_npm_packages
 
 echo -e "${GREEN}Dev setup completed successfully${NC}"
 if $RESTART_REQUIRED
