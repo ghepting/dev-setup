@@ -1,8 +1,8 @@
-install_homebrew() {
+install_homebrew_and_formulae() {
   if ! command -v brew &> /dev/null
   then
     echo -e "${WHITE}Installing Homebrew...${NC}"
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     RESTART_REQUIRED=true
     if command -v brew &> /dev/null;
     then
@@ -11,13 +11,11 @@ install_homebrew() {
   else
     echo -e "${WHITE}Updating Homebrew...${NC}"
     brew update &> /dev/null
+    echo -e "${BLUE}Using Homebrew $(brew --version)${NC}"
   fi
-}
 
-install_homebrew_path() {
   # ensure brew bins are added to $PATH
   BREW_PREFIX_CMD='export PATH="$(brew --prefix)/bin:$PATH"'
-
   if ! grep -qF "$BREW_PREFIX_CMD" "$ZSHRC_FILE"
   then
     echo '' >> "$ZSHRC_FILE"
@@ -26,10 +24,8 @@ install_homebrew_path() {
     echo -e "${GREEN}Homebrew PATH line added to $ZSHRC_FILE.${NC}"
     RESTART_REQUIRED=true
   fi
-}
 
-install_brew_bundle() {
   # install homebrew packages
-  echo -e "${WHITE}Bundling brew...${NC}"
+  echo -e "${WHITE}Installing Homebrew formulae...${NC}"
   brew bundle --upgrade -q
 }
