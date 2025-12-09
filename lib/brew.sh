@@ -11,8 +11,9 @@ install_homebrew_and_formulae() {
   else
     echo -e "${WHITE}Updating Homebrew...${NC}"
     brew update &> /dev/null
-    echo -e "${BLUE}Using Homebrew $(brew --version)${NC}"
   fi
+
+  echo -e "${BLUE}Using Homebrew $(brew --version)${NC}"
 
   # ensure brew bins are added to $PATH
   BREW_PREFIX_CMD='export PATH="$(brew --prefix)/bin:$PATH"'

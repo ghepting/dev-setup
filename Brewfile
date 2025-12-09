@@ -1,5 +1,3 @@
-tap "1password/tap" # for 1password-cli
-
 # ruby
 brew "rbenv"
 brew "ruby-build"
@@ -21,5 +19,5 @@ cask "docker-desktop"
 cask "postman"
 cask "ngrok"
 cask "1password"
-cask "1password-cli"
 cask "google-drive"
+cask "font-jetbrains-mono"

@@ -7,16 +7,10 @@ SSH_CONFIG_FILE="$HOME/.ssh/config"
 
 setup_1password() {
   echo -e "${BLUE}Using 1Password $(defaults read /Applications/1Password.app/Contents/Info CFBundleShortVersionString)${NC}"
-  echo -e "${BLUE}Using op $(op --version) ${GRAY}(1Password CLI)${NC}"
-
-  echo -e "${WHITE}Configuring 1Password...${NC}"
-
-  # sign into 1password via CLI
-  op signin
 
   if [[ "$SSH_AUTH_SOCK" =~ "1password" ]]
   then
-    echo -e "${BLUE}Using 1Password ssh agent${NC}"
+    echo -e "${BLUE}Using 1Password ssh agent ($(ssh-add -l | awk '{print $2}'))${NC}"
   else
     echo -e "${WHITE}Configuring 1Password ssh agent...${NC}"
     # create ssh config file if it doesn't already exist
