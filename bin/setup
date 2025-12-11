@@ -32,7 +32,7 @@ if [ ! -d "/Applications/Google Drive.app" ]
 then
   brew install --cask google-drive
   open /Applications/Google\ Drive.app
-  read -p "Press [Enter] after logging in to Google Drive..."
+  read "?Press [Enter] after logging in to Google Drive..."
 fi
 
 # google drive dotfiles

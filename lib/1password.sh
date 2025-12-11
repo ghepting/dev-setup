@@ -19,7 +19,7 @@ setup_1password() {
     if ! op whoami &> /dev/null
     then
       open /Applications/1Password.app
-      read -p "Press [Enter] after logging in to 1Password..."
+      read "?Press [Enter] after logging in to 1Password..."
       eval $(op signin)
     fi
 
