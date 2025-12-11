@@ -22,6 +22,10 @@ source "./lib/node.sh"
 source "./lib/packages.sh"
 source "./lib/vim_tmux.sh"
 source "./lib/1password.sh"
+source "./lib/dotfiles.sh"
+
+# google drive dotfiles
+symlink_google_drive_dotfiles
 
 # homebrew and formulae
 install_homebrew_and_formulae
