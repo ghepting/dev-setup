@@ -14,11 +14,19 @@ brew "the_silver_searcher"
 brew "universal-ctags"
 
 # development
+cask "google-drive" # required for symlinked dotfiles
+cask "1password" # required for ssh key management
+cask "google-chrome"
 cask "antigravity" # if this fails, try: brew install --cask antigravity --force --no-binaries
 cask "docker-desktop"
 cask "postman"
+cask "linear-linear"
 cask "ngrok"
-cask "1password"
-cask "google-drive"
 cask "font-jetbrains-mono"
-brew "graphviz"
+
+# misc
+brew "wireguard-tools" # homelab vpn
+cask "plexamp"
+cask "divvy"
+cask "logitech-options"
+cask "slack"
