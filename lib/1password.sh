@@ -8,7 +8,7 @@ SSH_CONFIG_FILE="$HOME/.ssh/config"
 setup_1password() {
   echo -e "${BLUE}Using 1Password $(defaults read /Applications/1Password.app/Contents/Info CFBundleShortVersionString)${NC}"
 
-  if [[ "$SSH_AUTH_SOCK" =~ "1password" ]]
+  if [[ "$SSH_AUTH_SOCK" =~ "1password" ]] && [ -S "$SSH_AUTH_SOCK" ]
   then
     echo -e "${BLUE}Using 1Password ssh agent ($(ssh-add -l | awk '{print $2}'))${NC}"
   else

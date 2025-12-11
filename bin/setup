@@ -52,7 +52,7 @@ install_pyenv_and_python
 
 # print version of each of the Brewfile packages
 echo -e "${BLUE}Using $(docker --version)${NC}"
-echo -e "${BLUE}Using docker compose $(docker compose version --short)${NC}"
+echo -e "${BLUE}Using docker compose $(docker compose version)${NC}"
 echo -e "${BLUE}Using $(tmux -V)${NC}"
 echo -e "${BLUE}Using vim $(vim --version | head -n 1 | sed -E 's/.*([0-9]+\.[0-9]+).*/\1/')${NC}"
 echo -e "${BLUE}Using direnv $(direnv --version)${NC}"
