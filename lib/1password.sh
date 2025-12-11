@@ -20,7 +20,7 @@ setup_1password() {
     then
       open /Applications/1Password.app
       read -p "Press [Enter] after logging in to 1Password..."
-      op signin
+      eval $(op signin)
     fi
 
     # create ssh config file if it doesn't already exist
