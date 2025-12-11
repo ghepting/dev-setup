@@ -23,10 +23,3 @@ cask "postman"
 cask "linear-linear"
 cask "ngrok"
 cask "font-jetbrains-mono"
-
-# misc
-brew "wireguard-tools" # homelab vpn
-cask "plexamp"
-cask "divvy"
-cask "logitech-options"
-cask "slack"

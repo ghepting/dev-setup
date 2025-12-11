@@ -28,10 +28,12 @@ source "./lib/dotfiles.sh"
 install_homebrew
 
 # install google drive
-brew install --cask google-drive
-open /Applications/Google\ Drive.app
-# pause for user to login to google drive
-read -p "Press [Enter] after logging in to Google Drive..."
+if [ ! -d "/Applications/Google Drive.app" ]
+then
+  brew install --cask google-drive
+  open /Applications/Google\ Drive.app
+  read -p "Press [Enter] after logging in to Google Drive..."
+fi
 
 # google drive dotfiles
 symlink_google_drive_dotfiles

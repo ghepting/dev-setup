@@ -13,6 +13,16 @@ setup_1password() {
     echo -e "${BLUE}Using 1Password ssh agent ($(ssh-add -l | awk '{print $2}'))${NC}"
   else
     echo -e "${WHITE}Configuring 1Password ssh agent...${NC}"
+
+    # use op (1password cli) to ensure user is logged in...
+    brew install --cask 1password-cli
+    if ! op whoami &> /dev/null
+    then
+      open /Applications/1Password.app
+      read -p "Press [Enter] after logging in to 1Password..."
+      op signin
+    fi
+
     # create ssh config file if it doesn't already exist
     if [ -f "$SSH_CONFIG_FILE" ]
     then
