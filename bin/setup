@@ -23,6 +23,7 @@ source "./lib/packages.sh"
 source "./lib/vim_tmux.sh"
 source "./lib/1password.sh"
 source "./lib/dotfiles.sh"
+source "./lib/docker.sh"
 
 # install homebrew
 install_homebrew
@@ -44,6 +45,9 @@ install_homebrew_path
 # homebrew and formulae
 install_homebrew_formulae
 
+# docker
+setup_docker
+
 # ruby and rbenv
 install_rbenv_and_ruby
 
@@ -52,16 +56,16 @@ install_pyenv_and_python
 
 # print version of each of the Brewfile packages
 echo -e "${BLUE}Using $(docker --version)${NC}"
-echo -e "${BLUE}Using docker compose $(docker compose --version)${NC}"
+echo -e "${BLUE}Using $(docker compose version)${NC}"
 echo -e "${BLUE}Using $(tmux -V)${NC}"
 echo -e "${BLUE}Using vim $(vim --version | head -n 1 | sed -E 's/.*([0-9]+\.[0-9]+).*/\1/')${NC}"
 echo -e "${BLUE}Using direnv $(direnv --version)${NC}"
-echo -e "${BLUE}Using antigravity $(agy -v 2>/dev/null | grep -E --color=no '^[0-9]+\.[0-9]+\.[0-9]+$')${NC}"
-echo -e "${BLUE}Using postman $(defaults read /Applications/Postman.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
+echo -e "${BLUE}Using Antigravity $(agy -v 2>/dev/null | grep -E --color=no '^[0-9]+\.[0-9]+\.[0-9]+$')${NC}"
+echo -e "${BLUE}Using Postman $(defaults read /Applications/Postman.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
 echo -e "${BLUE}Using $(ngrok --version)${NC}"
-echo -e "${BLUE}Using google drive $(defaults read /Applications/Google\ Drive.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
-echo -e "${BLUE}Using google chrome $(defaults read /Applications/Google\ Chrome.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
-echo -e "${BLUE}Using linear $(defaults read /Applications/Linear.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
+echo -e "${BLUE}Using Google Drive $(defaults read /Applications/Google\ Drive.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
+echo -e "${BLUE}Using Google Chrome $(defaults read /Applications/Google\ Chrome.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
+echo -e "${BLUE}Using Linear $(defaults read /Applications/Linear.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
 
 # node/npm, and nvm
 install_nvm_and_node
