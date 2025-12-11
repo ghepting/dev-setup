@@ -19,8 +19,9 @@ setup_1password() {
     if ! op whoami &> /dev/null
     then
       open /Applications/1Password.app
-      read "?Press [Enter] after logging in to 1Password..."
-      eval $(op signin)
+      echo -e "${WHITE}Please log in to 1Password and enable the 1Password CLI integration in the Developer settings...${NC}"
+      read "?Press [Enter] after logging in to 1Password and enabling the 1Password CLI integration..."
+      op signin
     fi
 
     # create ssh config file if it doesn't already exist
