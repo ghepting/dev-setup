@@ -1,4 +1,4 @@
-install_homebrew_and_formulae() {
+install_homebrew() {
   if ! command -v brew &> /dev/null
   then
     echo -e "${WHITE}Installing Homebrew...${NC}"
@@ -12,10 +12,11 @@ install_homebrew_and_formulae() {
     echo -e "${WHITE}Updating Homebrew...${NC}"
     brew update &> /dev/null
   fi
-
   echo -e "${BLUE}Using Homebrew $(brew --version)${NC}"
+}
 
-  # ensure ~/.zshrc exists
+install_homebrew_path() {
+  # ensure ~/.zshrc exists for initial setup
   touch "$ZSHRC_FILE"
 
   # ensure brew bins are added to $PATH
@@ -28,7 +29,9 @@ install_homebrew_and_formulae() {
     echo -e "${GREEN}Homebrew PATH line added to $ZSHRC_FILE.${NC}"
     RESTART_REQUIRED=true
   fi
+}
 
+install_homebrew_formulae() {
   # install homebrew packages
   echo -e "${WHITE}Installing Homebrew formulae...${NC}"
   brew bundle --upgrade -q

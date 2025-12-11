@@ -24,11 +24,20 @@ source "./lib/vim_tmux.sh"
 source "./lib/1password.sh"
 source "./lib/dotfiles.sh"
 
+# install homebrew
+install_homebrew
+
+# install google drive
+brew install --cask google-drive
+
 # google drive dotfiles
 symlink_google_drive_dotfiles
 
+# add homebrew to path
+install_homebrew_path
+
 # homebrew and formulae
-install_homebrew_and_formulae
+install_homebrew_formulae
 
 # ruby and rbenv
 install_rbenv_and_ruby
