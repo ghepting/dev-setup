@@ -25,7 +25,7 @@ setup_1password() {
   fi
 
   # Verify login was successful
-  if ! op whoami
+  if ! op whoami &> /dev/null
   then
     echo -e "${RED}Failed to sign in to 1Password CLI.${NC}"
     exit 1
@@ -43,9 +43,9 @@ setup_1password() {
   if ! grep -q "IdentityAgent \"~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock\"" "$SSH_CONFIG_FILE"
   then
     echo "$SSH_CONFIG_BLOCK" >> "$SSH_CONFIG_FILE"
-    echo -e "${GREEN}Added 1Password ssh agent configuration to $SSH_CONFIG_FILE${NC}"
+    echo -e "${GREEN}Added 1Password SSH agent to $SSH_CONFIG_FILE${NC}"
   else
-    echo -e "${BLUE}1Password ssh agent configuration already exists in $SSH_CONFIG_FILE${NC}"
+    echo -e "${BLUE}Using 1Password SSH agent${NC}"
   fi
 
   # configure environment variable (Idempotent)
@@ -60,8 +60,6 @@ setup_1password() {
     echo "$EXPORT_CMD" >> "$ZSHRC_FILE"
     echo -e "${GREEN}Added SSH_AUTH_SOCK export to $ZSHRC_FILE${NC}"
     RESTART_REQUIRED=true
-  else
-    echo -e "${BLUE}SSH_AUTH_SOCK already configured in $ZSHRC_FILE${NC}"
   fi
 
   # verify that $HOME/.config/1Password/ssh/agent.toml exists and is configured with correct "Development" vault
@@ -78,6 +76,6 @@ setup_1password() {
     sed -i '' 's/vault = "Private"/vault = "Development"/' "$HOME/.config/1Password/ssh/agent.toml"
     echo -e "${GREEN}Configured $HOME/.config/1Password/ssh/agent.toml${NC}"
   else
-    echo -e "${BLUE}Using 1Password \"Development\" vault in $HOME/.config/1Password/ssh/agent.toml${NC}"
+    echo -e "${BLUE}Using 1Password \"Development\" vault${NC}"
   fi
 }
