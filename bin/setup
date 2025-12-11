@@ -52,7 +52,7 @@ install_pyenv_and_python
 
 # print version of each of the Brewfile packages
 echo -e "${BLUE}Using $(docker --version)${NC}"
-echo -e "${BLUE}Using docker compose $(docker compose version)${NC}"
+echo -e "${BLUE}Using docker compose $(docker compose --version)${NC}"
 echo -e "${BLUE}Using $(tmux -V)${NC}"
 echo -e "${BLUE}Using vim $(vim --version | head -n 1 | sed -E 's/.*([0-9]+\.[0-9]+).*/\1/')${NC}"
 echo -e "${BLUE}Using direnv $(direnv --version)${NC}"
@@ -60,6 +60,8 @@ echo -e "${BLUE}Using antigravity $(agy -v 2>/dev/null | grep -E --color=no '^[0
 echo -e "${BLUE}Using postman $(defaults read /Applications/Postman.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
 echo -e "${BLUE}Using $(ngrok --version)${NC}"
 echo -e "${BLUE}Using google drive $(defaults read /Applications/Google\ Drive.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
+echo -e "${BLUE}Using google chrome $(defaults read /Applications/Google\ Chrome.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
+echo -e "${BLUE}Using linear $(defaults read /Applications/Linear.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
 
 # node/npm, and nvm
 install_nvm_and_node
