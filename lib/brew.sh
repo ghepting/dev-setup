@@ -4,9 +4,12 @@ install_homebrew() {
     echo -e "${WHITE}Installing Homebrew...${NC}"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     RESTART_REQUIRED=true
-    if command -v brew &> /dev/null;
-    then
-      export PATH="$(brew --prefix)/bin:$PATH"
+
+    # Configure shell environment for the current session
+    if [[ -x "/opt/homebrew/bin/brew" ]]; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -x "/usr/local/bin/brew" ]]; then
+      eval "$(/usr/local/bin/brew shellenv)"
     fi
   else
     echo -e "${WHITE}Updating Homebrew...${NC}"
