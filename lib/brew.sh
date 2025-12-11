@@ -15,6 +15,9 @@ install_homebrew_and_formulae() {
 
   echo -e "${BLUE}Using Homebrew $(brew --version)${NC}"
 
+  # ensure ~/.zshrc exists
+  touch "$ZSHRC_FILE"
+
   # ensure brew bins are added to $PATH
   BREW_PREFIX_CMD='export PATH="$(brew --prefix)/bin:$PATH"'
   if ! grep -qF "$BREW_PREFIX_CMD" "$ZSHRC_FILE"
