@@ -1,25 +1,31 @@
 #!/usr/bin/env zsh
 
-app_store_ids=(
-  "413857545" # Divvy
-  "937984704" # Amphetamine
-  "603637384" # Name Mangler 3
-  "1295203466" # Windows App (remote desktop)
-)
-
 install_mas_apps() {
-    # check if mas is installed
-    if ! command -v mas &> /dev/null
+  typeset -A apps
+  apps=(
+    [413857545]="Divvy"
+    [937984704]="Amphetamine"
+    [603637384]="Name Mangler 3"
+    [1295203466]="Windows App"
+  )
+
+  # check if mas is installed
+  if [[ ! $(command -v mas) ]]; then
+    echo -e "${WHITE}Installing mas (Mac App Store CLI)...${NC}"
+    brew install mas
+  fi
+
+  echo -e "${WHITE}Installing apps from App Store...${NC}"
+  # install apps
+  for app_id in "${(@k)apps}"
+  do
+    if mas list | grep -q "${apps[$app_id]}"
     then
-        echo -e "${YELLOW}Installing mas...${NC}"
-        brew install mas
+      echo -e "${BLUE}Using ${apps[$app_id]} $(defaults read /Applications/${apps[$app_id]}.app/Contents/Info CFBundleShortVersionString)${NC}"
+    else
+      mas install "$app_id"
     fi
+  done
 
-    # install apps
-    for app_store_id in "${app_store_ids[@]}"
-    do
-        mas install "$app_store_id"
-    done
-
-    echo -e "${GREEN}Installed apps from App Store${NC}"
+  echo -e "${GREEN}Installed apps from App Store${NC}"
 }
