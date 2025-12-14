@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 setup_vim_tmux_config() {
   # List of files to symlink
   # Source in repo -> Destination in home

@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 symlink_google_drive_dotfiles() {
     # for each of the following files, create a symlink to the Google Drive version
     # if the file already exists, prompt the user to replace it

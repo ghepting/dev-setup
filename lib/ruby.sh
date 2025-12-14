@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 install_rbenv_and_ruby() {
   # install rbenv
   if ! command -v rbenv &> /dev/null

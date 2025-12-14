@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 setup_docker() {
   # check if docker is installed/running
   if ! command -v docker &> /dev/null

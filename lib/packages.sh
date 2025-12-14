@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 install_gemini_cli() {
   # install global npm packages
   NPM_LIST_ARGS=(list -g --parseable)

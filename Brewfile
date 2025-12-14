@@ -23,3 +23,4 @@ cask "postman"
 cask "linear-linear"
 cask "ngrok"
 cask "font-jetbrains-mono"
+brew "mas" # mac app store CLI

@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 install_pyenv_and_python() {
   if ! command -v pyenv &> /dev/null
   then

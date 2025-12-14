@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 install_nvm_and_node() {
   # install nvm
   export NVM_DIR="$HOME/.nvm"

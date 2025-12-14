@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 install_homebrew() {
   if ! command -v brew &> /dev/null
   then

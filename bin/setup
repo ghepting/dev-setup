@@ -24,6 +24,7 @@ source "./lib/vim_tmux.sh"
 source "./lib/1password.sh"
 source "./lib/dotfiles.sh"
 source "./lib/docker.sh"
+source "./lib/app_store.sh"
 
 # install homebrew
 install_homebrew
@@ -79,11 +80,8 @@ setup_1password
 # global npm packages
 install_global_npm_packages
 
-# TODO: setup iterm2 w/solarized
-
-# TODO: setup zsh git context
-
-# TODO: setup symlinks for dotfiles in google drive (w/prompt as this step is optional)
+# app store apps
+install_mas_apps
 
 echo -e "${GREEN}Dev setup completed successfully${NC}"
 if $RESTART_REQUIRED
