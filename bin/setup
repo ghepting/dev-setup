@@ -59,8 +59,18 @@ symlink_google_drive_dotfiles
 # add homebrew to path
 install_homebrew_path
 
+# add ghostty to path
+install_ghostty_path
+
 # homebrew and formulae
 install_homebrew_formulae
+
+# configure Antigravity as EDITOR in ~/.zshrc
+if ! grep -q "export EDITOR" "$ZSHRC_FILE"
+then
+  echo "export EDITOR=\"agy --wait\"" >> "$ZSHRC_FILE"
+  echo -e "${GREEN}Antigravity configured as EDITOR in $ZSHRC_FILE${NC}"
+fi
 
 # docker
 setup_docker

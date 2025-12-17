@@ -36,6 +36,19 @@ install_homebrew_path() {
   fi
 }
 
+install_ghostty_path() {
+  # add ghostty path to ~/.zshrc
+  GHOSTTY_PATH_CMD='export PATH=$PATH:/Applications/Ghostty.app/Contents/MacOS'
+  if ! grep -qF "$GHOSTTY_PATH_CMD" "$ZSHRC_FILE"
+  then
+    echo '' >> "$ZSHRC_FILE"
+    echo '# ghostty' >> "$ZSHRC_FILE"
+    echo "$GHOSTTY_PATH_CMD" >> "$ZSHRC_FILE"
+    echo -e "${GREEN}Ghostty PATH line added to $ZSHRC_FILE.${NC}"
+    RESTART_REQUIRED=true
+  fi
+}
+
 install_homebrew_formulae() {
   # install homebrew packages
   echo -e "${WHITE}Installing Homebrew formulae...${NC}"
