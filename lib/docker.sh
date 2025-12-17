@@ -8,6 +8,9 @@ setup_docker() {
     brew install --cask docker
   fi
 
+  echo -e "${BLUE}Using $(docker --version)${NC}"
+  echo -e "${BLUE}Using $(docker compose version)${NC}"
+
   # run command "docker info" and grep for "failed to connect to the docker API"
   if ! docker info &> /dev/null
   then

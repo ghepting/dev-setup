@@ -40,4 +40,16 @@ install_homebrew_formulae() {
   # install homebrew packages
   echo -e "${WHITE}Installing Homebrew formulae...${NC}"
   brew bundle --upgrade -q
+
+  echo -e "${BLUE}Using iterm2 $(defaults read /Applications/iTerm.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
+  echo -e "${BLUE}Using ghostty $(defaults read /Applications/Ghostty.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
+  echo -e "${BLUE}Using $(tmux -V)${NC}"
+  echo -e "${BLUE}Using vim $(vim --version | head -n 1 | sed -E 's/.*([0-9]+\.[0-9]+).*/\1/')${NC}"
+  echo -e "${BLUE}Using direnv $(direnv --version)${NC}"
+  echo -e "${BLUE}Using Antigravity $(agy -v 2>/dev/null | grep -E --color=no '^[0-9]+\.[0-9]+\.[0-9]+$')${NC}"
+  echo -e "${BLUE}Using Postman $(defaults read /Applications/Postman.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
+  echo -e "${BLUE}Using $(ngrok --version)${NC}"
+  echo -e "${BLUE}Using Google Drive $(defaults read /Applications/Google\ Drive.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
+  echo -e "${BLUE}Using Google Chrome $(defaults read /Applications/Google\ Chrome.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
+  echo -e "${BLUE}Using Linear $(defaults read /Applications/Linear.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
 }

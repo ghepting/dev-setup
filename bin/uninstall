@@ -14,7 +14,8 @@ GRAY="\e[38m"
 NC="\e[0m" # No Color (Reset)
 
 # prompt for confirmation before continuing
-echo -e "${YELLOW}WARNING: This script will completely uninstall the tools and configurations installed by the dev setup. I trust you know what you're doing!${NC}"
+echo -e "${YELLOW}WARNING: This script will completely uninstall the tools and configurations installed by the dev setup and is not perfect... I trust you know what you're doing!${NC}"
+echo -e "${RED}You have been warned!${NC}"
 read -k 1 -r "REPLY?Are you sure you want to proceed with the uninstallation? (y/N) "
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]
@@ -46,14 +47,13 @@ rm -rf ~/Library/Caches/ruby
 rm -rf ~/.pyenv
 rm -rf ~/Library/Caches/pip
 
-# uninstall node & nvm, and global npm packages
+# uninstall node & nvm
 # try to load nvm to ensure npm is available
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 if command -v npm &> /dev/null
 then
-  npm uninstall -g @google/gemini-cli
   npm uninstall -g npm
 fi
 # cleanup node & nvm dirs
@@ -68,6 +68,10 @@ rm -f ~/.tmux.conf
 rm -f ~/.vimrc
 rm -f ~/.vimrc.bundles
 rm -rf ~/.vim
+
+# cleanup claude code cli
+rm -f ~/.local/bin/claude
+rm -rf ~/.claude-code
 
 # helper function to remove multi-line blocks from .zshrc
 remove_zshrc_block() {
