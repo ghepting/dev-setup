@@ -128,3 +128,51 @@ configure_editor() {
     fi
   done
 }
+
+install_antigravity_extensions() {
+  local extensions_file="$HOME/Google Drive/My Drive/dotfiles/antigravity/extensions.txt"
+
+  if [ ! -f "$extensions_file" ]; then
+    echo -e "${GRAY}Antigravity extensions list not found in Google Drive, skipping installation.${NC}"
+    return
+  fi
+
+  echo -e "${WHITE}Installing Antigravity extensions...${NC}"
+
+  local installed_extensions
+  installed_extensions=$(agy --list-extensions 2>/dev/null)
+
+  while read -r extension; do
+    if [ -z "$extension" ]; then
+      continue
+    fi
+
+    if echo "$installed_extensions" | grep -qi "^$extension$"; then
+      echo -e "${BLUE}Using $extension${NC}"
+    else
+      echo -e "${CYAN}Installing $extension...${NC}"
+      agy --install-extension "$extension" &> /dev/null
+      echo -e "${GREEN}Installed $extension${NC}"
+    fi
+  done < "$extensions_file"
+}
+
+update_antigravity_extensions_list() {
+  local extensions_file="$HOME/Google Drive/My Drive/dotfiles/antigravity/extensions.txt"
+
+  echo -e "${WHITE}Updating Antigravity extensions list in Google Drive...${NC}"
+
+  # Ensure the directory exists
+  mkdir -p "$(dirname "$extensions_file")"
+
+  # Redirect stderr to /dev/null because agy is currently emitting V8 fatal errors
+  # but still successfully printing the list to stdout.
+  agy --list-extensions > "$extensions_file" 2>/dev/null
+
+  # Verify if updates were actually written (checking file size)
+  if [[ -s "$extensions_file" ]]; then
+    echo -e "${GREEN}Extensions list updated: $(wc -l < "$extensions_file" | xargs) extensions saved.${NC}"
+  else
+    echo -e "${RED}Failed to update extensions list (file is empty).${NC}"
+  fi
+}

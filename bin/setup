@@ -57,6 +57,7 @@ fi
 
 # google drive dotfiles
 symlink_google_drive_dotfiles
+symlink_antigravity_config
 
 # add homebrew to path
 install_homebrew_path
@@ -72,6 +73,8 @@ setup_iterm_colors
 
 # configure Antigravity as default editor
 configure_editor
+install_antigravity_extensions
+update_antigravity_extensions_list
 
 # docker
 setup_docker
