@@ -9,6 +9,7 @@ brew "pyenv"
 cask "iterm2"
 cask "ghostty"
 brew "tmux"
+brew "reattach-to-user-namespace" # tmux clipboard integration with y (yank)
 brew "direnv"
 brew "vim"
 brew "the_silver_searcher"
@@ -27,4 +28,4 @@ cask "google-drive" # required for symlinked dotfiles
 cask "google-chrome"
 cask "1password" # required for ssh key management
 brew "mas" # mac app store CLI
-brew "duti"
+brew "duti" # file association
