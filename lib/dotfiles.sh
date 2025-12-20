@@ -42,38 +42,45 @@ symlink_google_drive_dotfiles() {
 }
 
 symlink_antigravity_config() {
-  local config_source="$HOME/Google Drive/My Drive/dotfiles/antigravity/settings.json"
-  local config_dest="$HOME/Library/Application Support/Antigravity/User/settings.json"
+  local files=(
+    "settings.json"
+    "mcp.json"
+  )
 
-  if [ ! -f "$config_source" ]; then
-    echo -e "${GRAY}Antigravity settings not found in Google Drive, skipping symlink.${NC}"
-    return
-  fi
+  for file in "${files[@]}"; do
+    local config_source="$HOME/Google Drive/My Drive/dotfiles/antigravity/${file}"
+    local config_dest="$HOME/Library/Application Support/Antigravity/User/${file}"
 
-  # ensure the destination directory exists
-  mkdir -p "$(dirname "$config_dest")"
-
-  if [ -L "$config_dest" ]; then
-    if [[ "$(readlink "$config_dest")" == "$config_source" ]]; then
-      echo -e "${BLUE}Using Google Drive dotfile $config_source${NC}"
-      return
-    fi
-  fi
-
-  if [ -e "$config_dest" ]; then
-    echo -n "Antigravity settings already exists at $config_dest. Replace with Google Drive version? (y/n) "
-    read -k 1 REPLY
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-      echo -e "${GRAY}Skipping Antigravity settings symlink${NC}"
-      return
+    if [ ! -f "$config_source" ]; then
+      echo -e "${GRAY}Antigravity ${file} not found in Google Drive, skipping symlink.${NC}"
+      continue
     fi
 
-    local backup="$config_dest.backup.$(date +%Y%m%d_%H%M%S)"
-    mv "$config_dest" "$backup"
-    echo -e "${GRAY}Backed up existing settings to $(basename "$backup")${NC}"
-  fi
+    # ensure the destination directory exists
+    mkdir -p "$(dirname "$config_dest")"
 
-  ln -sf "$config_source" "$config_dest"
-  echo -e "${GREEN}Antigravity settings symlinked to Google Drive${NC}"
+    if [ -L "$config_dest" ]; then
+      if [[ "$(readlink "$config_dest")" == "$config_source" ]]; then
+        echo -e "${BLUE}Using Google Drive dotfile $config_source${NC}"
+        continue
+      fi
+    fi
+
+    if [ -e "$config_dest" ]; then
+      echo -n "Antigravity ${file} already exists at $config_dest. Replace with Google Drive version? (y/n) "
+      read -k 1 REPLY
+      echo
+      if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${GRAY}Skipping Antigravity ${file} symlink${NC}"
+        continue
+      fi
+
+      local backup="$config_dest.backup.$(date +%Y%m%d_%H%M%S)"
+      mv "$config_dest" "$backup"
+      echo -e "${GRAY}Backed up existing ${file} to $(basename "$backup")${NC}"
+    fi
+
+    ln -sf "$config_source" "$config_dest"
+    echo -e "${GREEN}Antigravity ${file} symlinked to Google Drive${NC}"
+  done
 }
