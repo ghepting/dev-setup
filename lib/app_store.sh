@@ -7,6 +7,7 @@ install_mas_apps() {
     937984704 "Amphetamine"
     603637384 "Name Mangler 3"
     1295203466 "Windows App"
+    # 1451685025 "WireGuard"
   )
 
   # ensure mas is installed
