@@ -43,6 +43,7 @@ source "./lib/app_store.sh"
 source "./lib/claude.sh"
 source "./lib/editor.sh"
 source "./lib/iterm.sh"
+source "./lib/postman.sh"
 
 # install homebrew
 install_homebrew
@@ -99,6 +100,9 @@ install_gemini_cli
 
 # claude
 install_claude_code_cli
+
+# postman CLI
+install_postman_cli
 
 # app store apps
 install_mas_apps
