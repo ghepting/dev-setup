@@ -1,6 +1,12 @@
 #!/usr/bin/env zsh
 
 setup_vim_tmux_config() {
+  # Check if we are running in zsh
+  if [ -z "$ZSH_VERSION" ]; then
+    echo -e "${RED}Error: This script must be run in zsh.${NC}"
+    return 1
+  fi
+
   # List of files to symlink
   # Source in repo -> Destination in home
   typeset -A FILES
@@ -23,6 +29,41 @@ setup_vim_tmux_config() {
       HEADER_PRINTED=true
     fi
   }
+
+  # Detect OS and install dependencies if on Debian
+  OS_TYPE=$(uname -s)
+  if [[ "$OS_TYPE" == "Linux" ]]; then
+    if [[ -f /etc/debian_version ]]; then
+      echo -e "${WHITE}Debian-based system detected. Checking dependencies...${NC}"
+      # Use vim-nox for full features (syntax, scripting, etc.) instead of vim-tiny
+      DEPS=("vim-nox" "tmux" "git" "curl")
+      MISSING_DEPS=()
+      for dep_pkg in "${DEPS[@]}"; do
+        # For vim-nox, check if 'vim' command exists AND has +syntax
+        if [[ "$dep_pkg" == "vim-nox" ]]; then
+          if ! command -v vim &> /dev/null || ! vim --version | grep -q "+syntax"; then
+            MISSING_DEPS+=("vim-nox")
+          fi
+        elif ! command -v "$dep_pkg" &> /dev/null; then
+          MISSING_DEPS+=("$dep_pkg")
+        fi
+      done
+
+      if [[ ${#MISSING_DEPS[@]} -gt 0 ]]; then
+        print_header
+        echo -e "${WHITE}Installing missing dependencies: ${MISSING_DEPS[*]}...${NC}"
+        sudo apt-get update
+        sudo apt-get install -y "${MISSING_DEPS[@]}"
+
+        # Ensure vi and vim point to vim-nox
+        if [[ " ${MISSING_DEPS[*]} " == *" vim-nox "* ]]; then
+          echo -e "${WHITE}Configuring vim-nox as default editor...${NC}"
+          sudo update-alternatives --set vi /usr/bin/vim.nox 2>/dev/null
+          sudo update-alternatives --set vim /usr/bin/vim.nox 2>/dev/null
+        fi
+      fi
+    fi
+  fi
 
   for file in "${(@k)FILES}"; do
     SOURCE_FILE="$REPO_ROOT/$file"
