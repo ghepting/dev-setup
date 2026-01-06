@@ -1,5 +1,11 @@
 #!/usr/bin/env zsh
 
+# Check if we are running in zsh
+if [ -z "$ZSH_VERSION" ]; then
+  echo "Error: This script must be run in zsh."
+  exit 1
+fi
+
 ZSHRC_FILE="$HOME/.zshrc"
 
 # colors
@@ -14,22 +20,8 @@ NC="\e[0m" # No Color (Reset)
 
 RESTART_REQUIRED=false
 
-CONFIG_DIR="${HOME}/.config"
-CONFIG_FILE="${CONFIG_DIR}/dev-setup.conf"
-
-# create config directory if it doesn't exist
-if [ ! -d "$CONFIG_DIR" ]
-then
-  mkdir -p "$CONFIG_DIR"
-fi
-
-# copy config file to ~/.config/dev-setup.conf if it doesn't exist
-if [ ! -f "$CONFIG_FILE" ]
-then
-  cp "./dev-setup.conf" "$CONFIG_FILE"
-fi
-
 # source utility functions
+source "./lib/utils.sh"
 source "./lib/brew.sh"
 source "./lib/ruby.sh"
 source "./lib/python.sh"
@@ -45,55 +37,100 @@ source "./lib/editor.sh"
 source "./lib/iterm.sh"
 source "./lib/postman.sh"
 
-# install homebrew
-install_homebrew
+echo -e "${WHITE}Detected platform: ${PLATFORM}${NC}"
 
-# install google drive
-if [ ! -d "/Applications/Google Drive.app" ]
+CONFIG_DIR="${HOME}/.config"
+CONFIG_FILE="${CONFIG_DIR}/dev-setup.conf"
+
+# create config directory if it doesn't exist
+if [ ! -d "$CONFIG_DIR" ]
 then
-  brew install --cask google-drive
-  open /Applications/Google\ Drive.app
-  read "?Press [Enter] after logging in to Google Drive..."
+  mkdir -p "$CONFIG_DIR"
 fi
 
+# copy config file to ~/.config/dev-setup.conf if it doesn't exist
+if [ ! -f "$CONFIG_FILE" ]
+then
+  cp "./dev-setup.conf" "$CONFIG_FILE"
+  echo -e "${GREEN}Created default configuration at $CONFIG_FILE${NC}"
+fi
+
+echo -e "\n${YELLOW}--- Configuration Review ---${NC}"
+echo -e "The setup will proceed with defaults based on your platform ($PLATFORM)."
+echo -e "You can customize which modules are enabled in: ${WHITE}$CONFIG_FILE${NC}"
+echo -e "${CYAN}Opening configuration in your editor now...${NC}"
+
+# Open in editor and wait
+${EDITOR:-vim} "$CONFIG_FILE"
+
+echo -e "\n${GREEN}Configuration saved.${NC}"
+read -p "Press [Enter] to continue with the setup..."
+echo -e "${YELLOW}----------------------------${NC}\n"
+# initial setup
+if is_macos; then
+  # install homebrew
+  install_homebrew
+fi
+
+# google drive setup
+setup_google_drive
+
 # google drive dotfiles
-symlink_google_drive_dotfiles
-symlink_antigravity_config
+if is_enabled "dotfiles"; then
+  symlink_google_drive_dotfiles
+  symlink_antigravity_config
+fi
 
-# add homebrew to path
-install_homebrew_path
+if is_macos; then
+  # add homebrew to path
+  install_homebrew_path
 
-# add ghostty to path
-install_ghostty_path
+  # add ghostty to path
+  install_ghostty_path
 
-# homebrew and formulae
-install_homebrew_formulae
+  # homebrew and formulae
+  install_homebrew_formulae
 
-# iTerm2 colors
-setup_iterm_colors
+  # iTerm2 colors
+  setup_iterm_colors
+fi
 
 # configure Antigravity as default editor
-configure_editor
-install_antigravity_extensions
-update_antigravity_extensions_list
+if is_enabled "editor"; then
+  configure_editor
+  install_antigravity_extensions
+  update_antigravity_extensions_list
+fi
 
 # docker
-setup_docker
+if is_enabled "docker"; then
+  setup_docker
+fi
 
 # ruby and rbenv
-install_rbenv_and_ruby
+if is_enabled "ruby"; then
+  install_rbenv_and_ruby
+fi
 
 # python and pyenv
-install_pyenv_and_python
+if is_enabled "python"; then
+  install_pyenv_and_python
+fi
 
 # node/npm, and nvm
-install_nvm_and_node
+if is_enabled "node"; then
+  install_nvm_and_node
+fi
 
 # vim & tmux
-setup_vim_tmux_config
+if is_enabled "vim_tmux"; then
+  setup_vim_tmux_config
+fi
 
 # 1password and SSH agent
-setup_1password
+if is_enabled "op"; then
+  setup_1password
+fi
 
 # gemini CLI
 install_gemini_cli
@@ -105,7 +142,9 @@ install_claude_code_cli
 install_postman_cli
 
 # app store apps
-install_mas_apps
+if is_macos && is_enabled "app_store"; then
+  install_mas_apps
+fi
 
 echo -e "${GREEN}Dev setup completed successfully${NC}"
 if $RESTART_REQUIRED

@@ -42,6 +42,16 @@ symlink_google_drive_dotfiles() {
 }
 
 symlink_antigravity_config() {
+  local config_dest_base
+  if is_macos; then
+    config_dest_base="$HOME/Library/Application Support/Antigravity/User"
+  elif is_debian; then
+    config_dest_base="$HOME/.config/Antigravity/User"
+  else
+    echo -e "${RED}Unsupported OS for Antigravity config symlink.${NC}"
+    return
+  fi
+
   local files=(
     "settings.json"
     "mcp.json"
@@ -49,7 +59,7 @@ symlink_antigravity_config() {
 
   for file in "${files[@]}"; do
     local config_source="$HOME/Google Drive/My Drive/dotfiles/antigravity/${file}"
-    local config_dest="$HOME/Library/Application Support/Antigravity/User/${file}"
+    local config_dest="${config_dest_base}/${file}"
 
     if [ ! -f "$config_source" ]; then
       echo -e "${GRAY}Antigravity ${file} not found in Google Drive, skipping symlink.${NC}"

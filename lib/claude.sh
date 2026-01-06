@@ -6,7 +6,7 @@ install_claude_code_cli() {
     echo -e "${BLUE}Using claude $(claude --version)${NC}"
   else
     # check if claude is enabled in config file
-    if [ -f "$CONFIG_FILE" ] && grep -q "^claude_code_cli=true$" "$CONFIG_FILE"
+    if is_enabled "claude_code_cli"
     then
       curl -fsSL https://claude.ai/install.sh | bash
       # ensure claude is in PATH

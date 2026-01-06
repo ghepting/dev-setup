@@ -41,7 +41,7 @@ install_gemini_cli() {
     echo -e "${BLUE}Using gemini $(gemini --version)${NC}"
   else
     # check if gemini is enabled in config file
-    if [ -f "$CONFIG_FILE" ] && grep -q "^gemini_cli=true$" "$CONFIG_FILE"
+    if is_enabled "gemini_cli"
     then
       echo -e "${WHITE}Installing Gemini CLI...${NC}"
       if npm $NPM_INSTALL_ARGS $NPM_GEMINI_PACKAGE

@@ -10,7 +10,7 @@ install_postman_cli() {
     echo -e "${BLUE}Using postman $(postman --version)${NC}"
   else
     # check if postman is enabled in config file
-    if [ -f "$CONFIG_FILE" ] && grep -q "^postman_cli=true$" "$CONFIG_FILE"
+    if is_enabled "postman_cli"
     then
       echo -e "${WHITE}Installing Postman CLI...${NC}"
       if npm $NPM_INSTALL_ARGS $NPM_PACKAGE
