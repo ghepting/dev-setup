@@ -26,15 +26,19 @@ setup_mocks() {
   }
   export -f brew
 
-  # Mock apt-get and dpkg
+  # Mock sudo
   sudo() {
-    # If the first arg is apt-get, just run apt-get mock
-    if [[ "$1" == "apt-get" ]]; then
-      shift
-      apt-get "$@"
-    else
-      echo "MOCKED: sudo $*" >&2
-    fi
+    local cmd=$1
+    shift
+    echo "MOCKED: sudo $cmd $*" >&2
+    case "$cmd" in
+      apt-get|pacman|dnf|update-alternatives)
+        "$cmd" "$@"
+        ;;
+      *)
+        # Already echoed above
+        ;;
+    esac
   }
   export -f sudo
 
@@ -54,7 +58,7 @@ setup_mocks() {
 
   dpkg-query() {
     if [[ "$*" == *"-W"* ]]; then
-      local pkg="${@[-1]}" # get last arg
+      local pkg="${@: -1}" # get last arg
       if [[ "$MOCK_PKG_INSTALLED" == *"$pkg"* ]]; then
         echo "hi ok installed"
         return 0
@@ -78,6 +82,38 @@ setup_mocks() {
     echo "MOCKED: rclone $*" >&2
   }
   export -f rclone
+
+  # Mock Arch/Fedora pkg managers
+  pacman() {
+    if [[ "$*" == *"-Qs"* ]]; then
+      local pkg="${@: -1}"
+      # Remove regex anchors if present for simple mock matching
+      local clean_pkg="${pkg#^}"
+      clean_pkg="${clean_pkg%$}"
+      if [[ "$MOCK_PKG_INSTALLED" == *"$clean_pkg"* ]]; then
+        return 0
+      fi
+      return 1
+    fi
+    echo "MOCKED: pacman $*" >&2
+  }
+  export -f pacman
+
+  dnf() {
+    echo "MOCKED: dnf $*" >&2
+  }
+  export -f dnf
+
+  rpm() {
+    if [[ "$1" == "-q" ]]; then
+      if [[ "$MOCK_PKG_INSTALLED" == *"$2"* ]]; then
+        return 0
+      fi
+      return 1
+    fi
+    echo "MOCKED: rpm $*" >&2
+  }
+  export -f rpm
 
   # Mock op (1Password CLI)
   op() {

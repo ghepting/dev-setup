@@ -24,18 +24,39 @@ setup_vim_tmux_config() {
   }
 
   # Install dependencies
-  if is_debian; then
-    # Full vim for Debian, plus common tools
-    DEPS=("vim-nox" "tmux" "git" "curl" "direnv" "silversearcher-ag" "universal-ctags")
+  if is_linux; then
+    # Default to debian/ubuntu package names
+    local vim_pkg="vim-nox"
+    local ctags_pkg="universal-ctags"
+    local ag_pkg="silversearcher-ag"
+
+    if is_arch; then
+      vim_pkg="vim"
+      ctags_pkg="ctags"
+      ag_pkg="the_silver_searcher"
+    elif is_fedora; then
+      vim_pkg="vim-enhanced"
+      ctags_pkg="ctags"
+      ag_pkg="the_silver_searcher"
+    fi
+
+    DEPS=("$vim_pkg" "tmux" "git" "curl" "direnv" "$ag_pkg" "$ctags_pkg")
     for pkg in "${DEPS[@]}"; do
       install_pkg "$pkg"
     done
 
-    # Ensure vi and vim point to vim-nox
-    if ! vim --version | grep -q "+syntax"; then
-      echo -e "${WHITE}Configuring vim-nox as default editor...${NC}"
-      sudo update-alternatives --set vi /usr/bin/vim.nox
-      sudo update-alternatives --set vim /usr/bin/vim.nox
+    # Ensure vi and vim point to a full vim on Debian/Fedora
+    if is_debian || is_fedora; then
+      if ! vim --version | grep -q "+syntax"; then
+        local vim_target="/usr/bin/vim.nox"
+        is_fedora && vim_target="/usr/bin/vim"
+
+        echo -e "${WHITE}Configuring vim as default editor...${NC}"
+        if command -v update-alternatives &>/dev/null; then
+          sudo update-alternatives --set vi "$vim_target"
+          sudo update-alternatives --set vim "$vim_target"
+        fi
+      fi
     fi
   fi
 

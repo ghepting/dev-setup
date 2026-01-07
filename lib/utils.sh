@@ -39,17 +39,23 @@ if [[ -z "$PLATFORM" ]]; then
 fi
 
 is_macos() {
-  if [[ "$PLATFORM" == "macOS" ]]; then
-    return 0
-  fi
-  return 1
+  [[ "$PLATFORM" == "macOS" ]]
+}
+
+is_linux() {
+  [[ "$PLATFORM" == "Debian" || "$PLATFORM" == "Arch" || "$PLATFORM" == "Fedora" || "$PLATFORM" == "Linux" ]]
 }
 
 is_debian() {
-  if [[ "$PLATFORM" == "Debian" ]]; then
-    return 0
-  fi
-  return 1
+  [[ "$PLATFORM" == "Debian" ]]
+}
+
+is_arch() {
+  [[ "$PLATFORM" == "Arch" ]]
+}
+
+is_fedora() {
+  [[ "$PLATFORM" == "Fedora" ]]
 }
 
 install_pkg() {
@@ -64,6 +70,16 @@ install_pkg() {
       echo -e "${WHITE}Installing $package via apt...${NC}"
       sudo apt-get update
       sudo apt-get install -y "$package"
+    fi
+  elif is_arch; then
+    if ! pacman -Qs "^$package$" &>/dev/null; then
+      echo -e "${WHITE}Installing $package via pacman...${NC}"
+      sudo pacman -S --noconfirm "$package"
+    fi
+  elif is_fedora; then
+    if ! rpm -q "$package" &>/dev/null; then
+      echo -e "${WHITE}Installing $package via dnf...${NC}"
+      sudo dnf install -y "$package"
     fi
   fi
 }
@@ -87,12 +103,12 @@ is_enabled() {
       ;;
     editor)
       is_macos && return 0
-      return 1 # GUI IDE setup disabled by default on Debian
+      return 1 # GUI IDE setup disabled by default on Linux
       ;;
     *)
       # For everything else (docker, languages, op, google_drive, etc.)
       is_macos && return 0 # Enable on Mac
-      return 1 # Disable on Debian
+      return 1 # Disable on Linux
       ;;
   esac
 }
@@ -112,7 +128,7 @@ setup_google_drive() {
   fi
 
   local gdrive_type="app"
-  is_debian && gdrive_type="rclone"
+  is_linux && gdrive_type="rclone"
 
   if grep -q "^google_drive_type=rclone$" "$CONFIG_FILE" 2>/dev/null; then
     gdrive_type="rclone"
@@ -129,7 +145,7 @@ setup_google_drive() {
       echo -n "Press [Enter] after logging in to Google Drive..."
       read
     fi
-  elif is_debian || [[ "$gdrive_type" == "rclone" ]]; then
+  elif is_linux || [[ "$gdrive_type" == "rclone" ]]; then
     if ! command -v rclone &> /dev/null; then
       echo -e "${YELLOW}Installing rclone for Google Drive support...${NC}"
       install_pkg "rclone"

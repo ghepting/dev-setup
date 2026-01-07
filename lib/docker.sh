@@ -7,10 +7,18 @@ setup_docker() {
     if is_macos; then
       echo -e "${YELLOW}Installing Docker Desktop...${NC}"
       brew install --cask docker
-    elif is_debian; then
+    elif is_linux; then
       echo -e "${YELLOW}Installing Docker...${NC}"
-      install_pkg "docker.io"
-      install_pkg "docker-compose"
+      if is_debian; then
+        install_pkg "docker.io"
+        install_pkg "docker-compose"
+      elif is_arch; then
+        install_pkg "docker"
+        install_pkg "docker-compose"
+      elif is_fedora; then
+        install_pkg "docker"
+        # docker-compose is usually a separate package or part of docker-ce
+      fi
       sudo usermod -aG docker "$(whoami)"
       echo -e "${YELLOW}Note: You may need to logout and login for docker group changes to take effect.${NC}"
     fi
@@ -27,7 +35,7 @@ setup_docker() {
       open /Applications/Docker.app
       read "?Press [Enter] after logging in to Docker..."
     fi
-  elif is_debian; then
+  elif is_linux; then
     # Only try to start via systemctl if systemd is running (not in a container)
     if [ -d /run/systemd/system ]; then
       sudo systemctl start docker

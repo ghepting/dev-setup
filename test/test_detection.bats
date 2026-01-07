@@ -10,6 +10,36 @@ setup() {
   unset PLATFORM
 }
 
+@test "Helpers: is_macos, is_linux, is_debian, is_arch, is_fedora work" {
+  load_lib "lib/utils.sh"
+
+  export PLATFORM="macOS"
+  is_macos
+  is_linux && return 1 || true
+  is_debian && return 1 || true
+
+  export PLATFORM="Debian"
+  is_macos && return 1 || true
+  is_linux
+  is_debian
+  is_arch && return 1 || true
+
+  export PLATFORM="Arch"
+  is_linux
+  is_arch
+  is_debian && return 1 || true
+
+  export PLATFORM="Fedora"
+  is_linux
+  is_fedora
+  is_debian && return 1 || true
+
+  export PLATFORM="Linux"
+  is_linux
+  is_debian && return 1 || true
+  is_arch && return 1 || true
+}
+
 @test "Detection: identifies macOS via uname" {
   load_lib "lib/utils.sh"
   uname() { echo "Darwin"; }
@@ -85,4 +115,74 @@ setup() {
 
   detect_platform
   [ "$PLATFORM" = "Unknown" ]
+}
+
+@test "install_pkg: uses brew on macOS" {
+  load_lib "lib/utils.sh"
+  setup_mocks
+  export PLATFORM="macOS"
+  export MOCK_PKG_INSTALLED=""
+
+  run install_pkg "test-pkg"
+  echo "$output" | grep -q "Installing test-pkg via Homebrew"
+}
+
+@test "install_pkg: uses apt on Debian" {
+  load_lib "lib/utils.sh"
+  setup_mocks
+  export PLATFORM="Debian"
+  export MOCK_PKG_INSTALLED=""
+
+  run install_pkg "test-pkg"
+  echo "$output" | grep -q "Installing test-pkg via apt"
+}
+
+@test "install_pkg: uses pacman on Arch" {
+  load_lib "lib/utils.sh"
+  setup_mocks
+  export PLATFORM="Arch"
+  export MOCK_PKG_INSTALLED=""
+
+  run install_pkg "test-pkg"
+  echo "$output" | grep -q "Installing test-pkg via pacman"
+}
+
+@test "install_pkg: uses dnf on Fedora" {
+  load_lib "lib/utils.sh"
+  setup_mocks
+  export PLATFORM="Fedora"
+  export MOCK_PKG_INSTALLED=""
+
+  run install_pkg "test-pkg"
+  echo "$output" | grep -q "Installing test-pkg via dnf"
+}
+
+@test "install_pkg: skips if already installed (apt)" {
+  load_lib "lib/utils.sh"
+  setup_mocks
+  export PLATFORM="Debian"
+  export MOCK_PKG_INSTALLED="test-pkg"
+
+  run install_pkg "test-pkg"
+  [ -z "$output" ]
+}
+
+@test "install_pkg: skips if already installed (pacman)" {
+  load_lib "lib/utils.sh"
+  setup_mocks
+  export PLATFORM="Arch"
+  export MOCK_PKG_INSTALLED="test-pkg"
+
+  run install_pkg "test-pkg"
+  [ -z "$output" ]
+}
+
+@test "install_pkg: skips if already installed (dnf/rpm)" {
+  load_lib "lib/utils.sh"
+  setup_mocks
+  export PLATFORM="Fedora"
+  export MOCK_PKG_INSTALLED="test-pkg"
+
+  run install_pkg "test-pkg"
+  [ -z "$output" ]
 }
