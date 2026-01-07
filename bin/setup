@@ -1,9 +1,9 @@
 #!/usr/bin/env zsh
 
-# Check if we are running in zsh
-if [ -z "$ZSH_VERSION" ]; then
-  echo "Error: This script must be run in zsh."
-  exit 1
+# Check if we are running in zsh or bash
+if [ -z "$ZSH_VERSION" ] && [ -z "$BASH_VERSION" ]; then
+  echo -e "${RED}Error: This script must be run in zsh or bash.${NC}"
+  return 1
 fi
 
 ZSHRC_FILE="$HOME/.zshrc"

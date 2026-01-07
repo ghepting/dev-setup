@@ -1,12 +1,6 @@
 #!/usr/bin/env zsh
 
 setup_vim_tmux_config() {
-  # Check if we are running in zsh
-  if [ -z "$ZSH_VERSION" ]; then
-    echo -e "${RED}Error: This script must be run in zsh.${NC}"
-    return 1
-  fi
-
   # List of files to symlink
   # Format: "Source in repo:Destination in home"
   local files=(

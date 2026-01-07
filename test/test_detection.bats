@@ -1,0 +1,88 @@
+#!/usr/bin/env bats
+
+load "test_helper.bash"
+
+setup() {
+  export TEST_HOME="$BATS_TEST_TMPDIR/home"
+  mkdir -p "$TEST_HOME"
+
+  # Reset PLATFORM to ensure detection runs
+  unset PLATFORM
+}
+
+@test "Detection: identifies macOS via uname" {
+  load_lib "lib/utils.sh"
+  uname() { echo "Darwin"; }
+  export -f uname
+  detect_platform
+  [ "$PLATFORM" = "macOS" ]
+}
+
+@test "Detection: identifies Debian via _get_linux_distro" {
+  load_lib "lib/utils.sh"
+  uname() { echo "Linux"; }
+  export -f uname
+  _get_linux_distro() { echo "debian"; }
+
+  detect_platform
+  [ "$PLATFORM" = "Debian" ]
+}
+
+@test "Detection: identifies Ubuntu as Debian via _get_linux_distro" {
+  load_lib "lib/utils.sh"
+  uname() { echo "Linux"; }
+  export -f uname
+  _get_linux_distro() { echo "ubuntu"; }
+
+  detect_platform
+  [ "$PLATFORM" = "Debian" ]
+}
+
+@test "Detection: identifies Arch via _get_linux_distro" {
+  load_lib "lib/utils.sh"
+  uname() { echo "Linux"; }
+  export -f uname
+  _get_linux_distro() { echo "arch"; }
+
+  detect_platform
+  [ "$PLATFORM" = "Arch" ]
+}
+
+@test "Detection: identifies Fedora via _get_linux_distro" {
+  load_lib "lib/utils.sh"
+  uname() { echo "Linux"; }
+  export -f uname
+  _get_linux_distro() { echo "fedora"; }
+
+  detect_platform
+  [ "$PLATFORM" = "Fedora" ]
+}
+
+@test "Detection: identifies generic Linux when _get_linux_distro returns unknown" {
+  load_lib "lib/utils.sh"
+  uname() { echo "Linux"; }
+  export -f uname
+  _get_linux_distro() { echo "unknown_distro"; }
+
+  detect_platform
+  [ "$PLATFORM" = "Linux" ]
+}
+
+@test "Detection: identifies generic Linux via uname if _get_linux_distro returns empty" {
+  load_lib "lib/utils.sh"
+  uname() { echo "Linux"; }
+  export -f uname
+  _get_linux_distro() { echo ""; }
+
+  detect_platform
+  [ "$PLATFORM" = "Linux" ]
+}
+
+@test "Detection: returns Unknown for other systems" {
+  load_lib "lib/utils.sh"
+  uname() { echo "FreeBSD"; }
+  export -f uname
+
+  detect_platform
+  [ "$PLATFORM" = "Unknown" ]
+}
