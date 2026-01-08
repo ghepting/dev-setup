@@ -29,3 +29,4 @@ cask "google-chrome"
 cask "1password" # required for ssh key management
 brew "mas" # mac app store CLI
 brew "duti" # file association
+cask "slack"
