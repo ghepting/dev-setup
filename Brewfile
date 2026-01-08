@@ -14,6 +14,7 @@ brew "direnv"
 brew "vim"
 brew "the_silver_searcher"
 brew "universal-ctags"
+brew "gh"
 
 # development
 cask "docker-desktop"
