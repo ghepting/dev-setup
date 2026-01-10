@@ -1,0 +1,3 @@
+#!/bin/bash
+echo "MOCKED: dnf $@"
+exit 0
