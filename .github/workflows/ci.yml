@@ -20,15 +20,15 @@ jobs:
           - name: Debian
             os: ubuntu-latest
             container: debian:latest
-            install_cmd: apt-get update && apt-get install -y bats git
+            install_cmd: apt-get update && apt-get install -y bats git zsh
           - name: Arch
             os: ubuntu-latest
             container: archlinux:latest
-            install_cmd: pacman -Syu --noconfirm bats git
+            install_cmd: pacman -Syu --noconfirm bats git zsh
           - name: Fedora
             os: ubuntu-latest
             container: fedora:latest
-            install_cmd: dnf install -y bats git
+            install_cmd: dnf install -y bats git zsh
 
     steps:
       - name: Disable git safe directory checks

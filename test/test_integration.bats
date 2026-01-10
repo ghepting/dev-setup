@@ -18,6 +18,8 @@ setup() {
   cp -r "$BATS_TEST_DIRNAME/../bin" "$PROJECT_DIR/"
   cp -r "$BATS_TEST_DIRNAME/../lib" "$PROJECT_DIR/"
   cp "$BATS_TEST_DIRNAME/../dev-setup.conf" "$PROJECT_DIR/"
+  chmod +x "$PROJECT_DIR/bin/setup"
+  find "$PROJECT_DIR/lib" -name "*.sh" -exec chmod +x {} +
 
   # Prepend mocks to PATH
   export MOCKS_DIR="$BATS_TEST_DIRNAME/mocks"
