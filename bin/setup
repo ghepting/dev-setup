@@ -64,7 +64,8 @@ echo -e "${CYAN}Opening configuration in your editor now...${NC}"
 ${EDITOR:-vim} "$CONFIG_FILE"
 
 echo -e "\n${GREEN}Configuration saved.${NC}"
-read -p "Press [Enter] to continue with the setup..."
+echo -n "Press [Enter] to continue with the setup..."
+read -r
 echo -e "${YELLOW}----------------------------${NC}\n"
 # initial setup
 if is_macos; then

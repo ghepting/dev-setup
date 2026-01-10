@@ -14,7 +14,9 @@ install_gemini_cli() {
     if [[ "$OUTDATED_OUTPUT" == *"$NPM_GEMINI_PACKAGE"* ]]
     then
       # prompt to update
-      read -p "Update $NPM_GEMINI_PACKAGE? [y/N] " -n 1 -r
+      echo -n "Update $NPM_GEMINI_PACKAGE? [y/N] "
+      read -k 1 REPLY
+      echo
       if [[ $REPLY =~ ^[Yy]$ ]]
       then
         echo -e "${YELLOW}$NPM_GEMINI_PACKAGE is outdated${NC}"

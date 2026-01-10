@@ -28,10 +28,14 @@ setup() {
 
   # PATCH: Remove all interactive components
   # Target specific interactive prompts to avoid breaking while loops
-  sed -i.bak '/read -p/d' "$PROJECT_DIR/bin/setup"
-  sed -i.bak '/read -p/d' "$PROJECT_DIR/lib/gemini.sh"
+  sed -i.bak '/read -r/d' "$PROJECT_DIR/bin/setup"
+  sed -i.bak '/read -k/d' "$PROJECT_DIR/lib/gemini.sh"
   sed -i.bak '/read -p/d' "$PROJECT_DIR/lib/utils.sh"
   sed -i.bak '/read -k/d' "$PROJECT_DIR/lib/dotfiles.sh"
+
+  # Also remove prompt text to keep output clean but this is optional
+  sed -i.bak '/echo -n "Press \[Enter\]/d' "$PROJECT_DIR/bin/setup"
+  sed -i.bak '/echo -n "Update.*\[y\/N\]/d' "$PROJECT_DIR/lib/gemini.sh"
 
   # PATCH: Remove host-specific Homebrew/Ghostty path evals
   sed -i.bak '/shellenv/d' "$PROJECT_DIR/lib/brew.sh"
