@@ -3,15 +3,16 @@
 install_pyenv_and_python() {
   if ! command -v pyenv &> /dev/null
   then
-    echo -e "${WHITE}Installing pyenv...${NC}"
-    if brew install pyenv -q &> /dev/null
-    then
-      echo -e "${GREEN}Successfully installed pyenv${NC}"
-      RESTART_REQUIRED=true
+    if is_debian; then
+      # Build dependencies for pyenv
+      local deps=("build-essential" "libssl-dev" "zlib1g-dev" "libbz2-dev" "libreadline-dev" "libsqlite3-dev" "curl" "git" "libncursesw5-dev" "xz-utils" "tk-dev" "libxml2-dev" "libxmlsec1-dev" "libffi-dev" "liblzma-dev" "pyenv")
+      for dep in "${deps[@]}"; do
+        install_pkg "$dep"
+      done
     else
-      echo -e "${RED}Failed to install pyenv${NC}"
-      exit 1
+      install_pkg "pyenv"
     fi
+    RESTART_REQUIRED=true
   else
     echo -e "${BLUE}Using $(pyenv --version)${NC}"
   fi

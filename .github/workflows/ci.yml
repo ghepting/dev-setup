@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            os: macos-latest
+            install_cmd: brew install bats-core
+          - name: Debian
+            os: ubuntu-latest
+            container: debian:latest
+            install_cmd: apt-get update && apt-get install -y bats git zsh
+          - name: Arch
+            os: ubuntu-latest
+            container: archlinux:latest
+            install_cmd: pacman -Syu --noconfirm bats git zsh
+          - name: Fedora
+            os: ubuntu-latest
+            container: fedora:latest
+            install_cmd: dnf install -y bats git zsh
+
+    steps:
+      - name: Disable git safe directory checks
+        run: git config --global --add safe.directory '*' || true
+
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: ${{ matrix.install_cmd }}
+
+      - name: Run Tests
+        run: bats test/

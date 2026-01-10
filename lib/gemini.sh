@@ -14,7 +14,9 @@ install_gemini_cli() {
     if [[ "$OUTDATED_OUTPUT" == *"$NPM_GEMINI_PACKAGE"* ]]
     then
       # prompt to update
-      read -p "Update $NPM_GEMINI_PACKAGE? [y/N] " -n 1 -r
+      echo -n "Update $NPM_GEMINI_PACKAGE? [y/N] "
+      read -k 1 REPLY
+      echo
       if [[ $REPLY =~ ^[Yy]$ ]]
       then
         echo -e "${YELLOW}$NPM_GEMINI_PACKAGE is outdated${NC}"
@@ -41,7 +43,7 @@ install_gemini_cli() {
     echo -e "${BLUE}Using gemini $(gemini --version)${NC}"
   else
     # check if gemini is enabled in config file
-    if [ -f "$CONFIG_FILE" ] && grep -q "^gemini_cli=true$" "$CONFIG_FILE"
+    if is_enabled "gemini_cli"
     then
       echo -e "${WHITE}Installing Gemini CLI...${NC}"
       if npm $NPM_INSTALL_ARGS $NPM_GEMINI_PACKAGE

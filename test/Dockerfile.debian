@@ -1,0 +1,22 @@
+FROM debian:stable-slim
+
+# Avoid prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install basic requirements for the setup script itself
+RUN apt-get update && apt-get install -y \
+    zsh \
+    curl \
+    git \
+    sudo \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user
+RUN useradd -m -s /usr/bin/zsh tester && \
+    echo "tester ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+USER tester
+WORKDIR /home/tester/dev-setup
+
+# We will mount the current directory here when running
+CMD ["/usr/bin/zsh", "bin/setup"]

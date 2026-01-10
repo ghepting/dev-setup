@@ -4,15 +4,16 @@ install_rbenv_and_ruby() {
   # install rbenv
   if ! command -v rbenv &> /dev/null
   then
-    echo -e "${WHITE}Installing rbenv...${NC}"
-    if brew install rbenv -q &> /dev/null
-    then
-      echo -e "${GREEN}Successfully installed rbenv${NC}"
-      RESTART_REQUIRED=true
+    if is_debian; then
+      # Build dependencies for ruby-build
+      local deps=("autoconf" "bison" "build-essential" "libssl-dev" "libyaml-dev" "libreadline6-dev" "zlib1g-dev" "libncurses5-dev" "libffi-dev" "libgdbm6" "libgdbm-dev" "libdb-dev" "rbenv")
+      for dep in "${deps[@]}"; do
+        install_pkg "$dep"
+      done
     else
-      echo -e "${RED}Failed to install rbenv${NC}"
-      exit 1
+      install_pkg "rbenv"
     fi
+    RESTART_REQUIRED=true
   else
     echo -e "${BLUE}Using $(rbenv --version)${NC}"
   fi

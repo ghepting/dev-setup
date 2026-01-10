@@ -1,0 +1,8 @@
+#!/bin/bash
+# Only echo MOCKED if not being used in a pipe that expects shell script output
+if [[ "$*" == *"-fsSL https://claude.ai/install.sh"* ]]; then
+  echo "echo 'MOCKED: Successfully installed claude'"
+  exit 0
+fi
+
+echo "MOCKED: curl $@"
