@@ -55,18 +55,65 @@ then
   echo -e "${GREEN}Created default configuration at $CONFIG_FILE${NC}"
 fi
 
-echo -e "\n${YELLOW}--- Configuration Review ---${NC}"
-echo -e "The setup will proceed with defaults based on your platform ($PLATFORM)."
-echo -e "You can customize which modules are enabled in: ${WHITE}$CONFIG_FILE${NC}"
-echo -e "${CYAN}Opening configuration in your editor now...${NC}"
+prompt_config() {
+  echo -e "\n${WHITE}--- Configuration Review ---${NC}"
+  echo -e "The setup will proceed with defaults based on your platform ($PLATFORM)."
+  echo -e "Config path: ${WHITE}$CONFIG_FILE${NC}"
 
-# Open in editor and wait
-${EDITOR:-vim} "$CONFIG_FILE"
+  echo -e "\n${WHITE}Current Toggles:${NC}"
+  local modules=(
+    "google_drive"
+    "dotfiles"
+    "vim_tmux"
+    "editor"
+    "op"
+    "ruby"
+    "python"
+    "node"
+    "claude_code_cli"
+    "gemini_cli"
+    "postman_cli"
+    "docker"
+    "app_store"
+  )
 
-echo -e "\n${GREEN}Configuration saved.${NC}"
-echo -n "Press [Enter] to continue with the setup..."
-read -r
-echo -e "${YELLOW}----------------------------${NC}\n"
+  for module in "${modules[@]}"; do
+    local module_status="${RED}disabled${NC}"
+    is_enabled "$module" && module_status="${GREEN}enabled${NC}"
+    printf "  %-20s : %b\n" "$module" "$module_status"
+  done
+
+  echo -n -e "\n${YELLOW}Modify configuration? [y/N]: ${NC}"
+  read -r REPLY
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo -e "${GREEN}Using current configuration.${NC}"
+    echo -e "${YELLOW}----------------------------${NC}\n"
+    return
+  fi
+
+  echo -e "\n${WHITE}Interactive Configuration (press Enter to keep default):${NC}"
+  for module in "${modules[@]}"; do
+    local current="n"
+    is_enabled "$module" && current="y"
+
+    echo -n -e "  Enable ${CYAN}${module}${NC}? [y/n] (default: $current): "
+    read -r REPLY
+    case "$REPLY" in
+      [Yy]*)
+        set_config_value "$module" "true"
+        ;;
+      [Nn]*)
+        set_config_value "$module" "false"
+        ;;
+    esac
+  done
+  echo -e "\n${GREEN}Configuration updated.${NC}"
+  echo -e "${YELLOW}----------------------------${NC}\n"
+}
+
+# Run the interactive configuration
+prompt_config
+
 # initial setup
 if is_macos; then
   # install homebrew

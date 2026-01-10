@@ -113,6 +113,22 @@ is_enabled() {
   esac
 }
 
+# Set config value in ~/.config/dev-setup.conf
+set_config_value() {
+  local key=$1
+  local value=$2
+
+  if grep -q "^${key}=" "$CONFIG_FILE" 2>/dev/null; then
+    if [[ "$PLATFORM" == "macOS" ]]; then
+      sed -i '' "s|^${key}=.*|${key}=${value}|" "$CONFIG_FILE"
+    else
+      sed -i "s|^${key}=.*|${key}=${value}|" "$CONFIG_FILE"
+    fi
+  else
+    echo "${key}=${value}" >> "$CONFIG_FILE"
+  fi
+}
+
 is_ssh() {
   [[ -n "$SSH_CONNECTION" || -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]
 }
