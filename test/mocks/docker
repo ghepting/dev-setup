@@ -1,0 +1,21 @@
+#!/bin/bash
+case "$1" in
+  version|--version)
+    echo "Docker version 27.0.0-mock"
+    ;;
+  compose)
+    if [[ "$2" == "version" ]]; then
+      echo "Docker Compose version v2.0.0-mock"
+    else
+      echo "MOCKED: docker compose $*"
+    fi
+    ;;
+  info)
+    echo "MOCKED: docker info (success)"
+    exit 0
+    ;;
+  *)
+    echo "MOCKED: docker $*"
+    ;;
+esac
+exit 0

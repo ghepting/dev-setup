@@ -70,11 +70,11 @@ prompt_config() {
     "ruby"
     "python"
     "node"
+    "docker"
+    "app_store"
     "claude_code_cli"
     "gemini_cli"
     "postman_cli"
-    "docker"
-    "app_store"
   )
 
   for module in "${modules[@]}"; do
@@ -111,92 +111,95 @@ prompt_config() {
   echo -e "${YELLOW}----------------------------${NC}\n"
 }
 
-# Run the interactive configuration
-prompt_config
+# Handle execution
+if [[ "${(%):-%N}" == "$0" ]]; then
+  # Run the interactive configuration
+  prompt_config
 
-# initial setup
-if is_macos; then
-  # install homebrew
-  install_homebrew
+  # initial setup
+  if is_macos; then
+    # install homebrew
+    setup_homebrew
+  fi
+
+  # google drive setup
+  setup_google_drive
+
+  # configuration toggles
+  if is_enabled "dotfiles"; then
+    symlink_google_drive_dotfiles
+    symlink_antigravity_config
+  fi
+
+  if is_macos; then
+    # add homebrew to path
+    install_homebrew_path
+
+    # add ghostty to path
+    install_ghostty_path
+
+    # homebrew and formulae
+    install_homebrew_formulae
+
+    # iTerm2 colors
+    setup_iterm_colors
+  fi
+
+  # configure Antigravity as default editor
+  if is_enabled "editor"; then
+    configure_editor
+    install_antigravity_extensions
+    update_antigravity_extensions_list
+  fi
+
+  # docker
+  if is_enabled "docker"; then
+    setup_docker
+  fi
+
+  # ruby and rbenv
+  if is_enabled "ruby"; then
+    install_rbenv_and_ruby
+  fi
+
+  # python and pyenv
+  if is_enabled "python"; then
+    install_pyenv_and_python
+  fi
+
+  # node/npm, and nvm
+  if is_enabled "node"; then
+    install_nvm_and_node
+  fi
+
+  # vim & tmux
+  if is_enabled "vim_tmux"; then
+    setup_vim_tmux_config
+  fi
+
+  # 1password and SSH agent
+  if is_enabled "op"; then
+    setup_1password
+  fi
+
+  # gemini CLI
+  is_enabled "gemini_cli" && install_gemini_cli
+
+  # claude
+  is_enabled "claude_code_cli" && install_claude_code_cli
+
+  # postman CLI
+  is_enabled "postman_cli" && install_postman_cli
+
+  # app store apps
+  if is_macos && is_enabled "app_store"; then
+    install_mas_apps
+  fi
+
+  echo -e "\n${GREEN}Dev setup completed successfully${NC}"
+  if $RESTART_REQUIRED
+  then
+    echo -e "${YELLOW}You may need to restart your terminal${NC}"
+  fi
+  exit 0
 fi
-
-# google drive setup
-setup_google_drive
-
-# google drive dotfiles
-if is_enabled "dotfiles"; then
-  symlink_google_drive_dotfiles
-  symlink_antigravity_config
-fi
-
-if is_macos; then
-  # add homebrew to path
-  install_homebrew_path
-
-  # add ghostty to path
-  install_ghostty_path
-
-  # homebrew and formulae
-  install_homebrew_formulae
-
-  # iTerm2 colors
-  setup_iterm_colors
-fi
-
-# configure Antigravity as default editor
-if is_enabled "editor"; then
-  configure_editor
-  install_antigravity_extensions
-  update_antigravity_extensions_list
-fi
-
-# docker
-if is_enabled "docker"; then
-  setup_docker
-fi
-
-# ruby and rbenv
-if is_enabled "ruby"; then
-  install_rbenv_and_ruby
-fi
-
-# python and pyenv
-if is_enabled "python"; then
-  install_pyenv_and_python
-fi
-
-# node/npm, and nvm
-if is_enabled "node"; then
-  install_nvm_and_node
-fi
-
-# vim & tmux
-if is_enabled "vim_tmux"; then
-  setup_vim_tmux_config
-fi
-
-# 1password and SSH agent
-if is_enabled "op"; then
-  setup_1password
-fi
-
-# gemini CLI
-install_gemini_cli
-
-# claude
-install_claude_code_cli
-
-# postman CLI
-install_postman_cli
-
-# app store apps
-if is_macos && is_enabled "app_store"; then
-  install_mas_apps
-fi
-
-echo -e "${GREEN}Dev setup completed successfully${NC}"
-if $RESTART_REQUIRED
-then
-  echo -e "${YELLOW}You may need to restart your terminal${NC}"
-fi
-exit 0

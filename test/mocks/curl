@@ -1,8 +1,27 @@
-#!/bin/bash
-# Only echo MOCKED if not being used in a pipe that expects shell script output
+# Handle known installation scripts by outputting shell commands
 if [[ "$*" == *"-fsSL https://claude.ai/install.sh"* ]]; then
   echo "echo 'MOCKED: Successfully installed claude'"
   exit 0
 fi
 
-echo "MOCKED: curl $@"
+if [[ "$*" == *"raw.githubusercontent.com/nvm-sh/nvm"* ]]; then
+  # Simulate nvm installer by creating the structure lib/node.sh expects
+  cat <<'EOF'
+mkdir -p "$HOME/.nvm"
+cat <<'FUNCTION' > "$HOME/.nvm/nvm.sh"
+nvm() {
+  case "$1" in
+    --version) echo "0.39.7-mock" ;;
+    install|alias) return 0 ;;
+    *) echo "MOCKED: nvm $*" ;;
+  esac
+}
+FUNCTION
+echo "MOCKED: Successfully installed nvm"
+EOF
+  exit 0
+fi
+
+# Fallback for other calls
+echo "MOCKED: curl $@" >&2 # Echo to stderr to avoid breaking pipes if possible
+exit 0
