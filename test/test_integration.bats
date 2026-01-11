@@ -35,11 +35,30 @@ setup() {
 
   # Helper for smoke tests to skip interactive config
   patch_smoke_tests() {
-    sed -i.bak '/read -r REPLY/d' "$PROJECT_DIR/bin/setup"
-    sed -i.bak '/read -r REPLY/d' "$PROJECT_DIR/lib/gemini.sh" # if any left
-    # Target the specific prompt in prompt_config
-    sed -i.bak 's/read -r REPLY/REPLY="n"/' "$PROJECT_DIR/bin/setup"
+    # Remove all possible 'read' calls globally for smoke tests
+    find "$PROJECT_DIR" -name "*.sh" -exec sed -i.bak '/^[[:space:]]*read/d' {} +
+    sed -i.bak '/^[[:space:]]*read/d' "$PROJECT_DIR/bin/setup"
+
+    # Ensure any logic that depends on REPLY gets a default
+    sed -i.bak 's/read -r REPLY/REPLY="n"/g' "$PROJECT_DIR/bin/setup"
   }
+
+  patch_interactive_only() {
+    # Remove all read calls except the ones in bin/setup's prompt_config function
+    # We use a regex that matches shell builtin 'read' at start of line (with spaces)
+    # followed by a space, ?, or end of line.
+    local read_pattern='/^[[:space:]]*read\([[:space:]]\|$\|?\)/d'
+
+    # First, patch all library files aggressively but safely
+    # Note: \v or extension of expressions might not be portable, so we use simpler regex
+    find "$PROJECT_DIR/lib" -name "*.sh" -exec sed -i.bak -e '/^[[:space:]]*read /d' -e '/^[[:space:]]*read$/d' -e '/^[[:space:]]*read?/d' {} +
+
+    # In bin/setup, only patch read calls outside prompt_config (lines 58-112)
+    sed -i.bak -e '1,57{/^[[:space:]]*read /d; /^[[:space:]]*read$/d; /^[[:space:]]*read?/d;}' \
+               -e '113,999{/^[[:space:]]*read /d; /^[[:space:]]*read$/d; /^[[:space:]]*read?/d;}' \
+               "$PROJECT_DIR/bin/setup"
+  }
+
 
   # PATCH: Remove host-specific Homebrew/Ghostty path evals
   sed -i.bak '/shellenv/d' "$PROJECT_DIR/lib/brew.sh"
@@ -47,11 +66,6 @@ setup() {
   sed -i.bak '/iterm/d' "$PROJECT_DIR/bin/setup"
   sed -i.bak '/homebrew/d' "$PROJECT_DIR/bin/setup"
   sed -i.bak '/\${EDITOR:-vim}/d' "$PROJECT_DIR/bin/setup"
-
-  # PATCH: Remove all remaining interactive components globally
-  find "$PROJECT_DIR" -name "*.sh" -exec sed -i.bak '/read -p/d' {} +
-  find "$PROJECT_DIR" -name "*.sh" -exec sed -i.bak '/read -k/d' {} +
-  sed -i.bak 's/read -n 1/read -r/' "$PROJECT_DIR/lib/gemini.sh" 2>/dev/null || true
 
   # PATCH: Force dependencies not found to test installation logic
   sed -i.bak 's/command -v docker/false/' "$PROJECT_DIR/lib/docker.sh"
@@ -191,15 +205,19 @@ setup() {
 
   # We need to provide exactly enough inputs for the 13 modules + the initial "y"
   # Let's ensure the PLATFORM is available to bin/setup as an env var
-  export PLATFORM="macOS"
+  patch_interactive_only
 
   # Run with zsh explicitly to ensure prompt-reading behavior matches reality
-  run zsh -c "printf 'y\n\nn\n\n\n\n\ny\n\n\n\n\n\n' | ./bin/setup"
+  export MOCK_UNAME="Darwin"
+  export PLATFORM="macOS"
+  run zsh -c "export PATH=\"$PATH\"; export MOCK_UNAME=\"$MOCK_UNAME\"; export PLATFORM=\"$PLATFORM\"; printf 'y\n\nn\n\n\n\n\ny\n\n\n\n\n\n' | ./bin/setup"
   if [ "$status" -ne 0 ]; then
     echo "Interactive setup failed with output:"
     echo "$output"
     return 1
   fi
+
+
 
   # Verify persistence
   grep "^python=true" "$CONFIG_FILE"

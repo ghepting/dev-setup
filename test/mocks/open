@@ -1,0 +1,3 @@
+#!/bin/bash
+echo "MOCKED: open $*"
+exit 0

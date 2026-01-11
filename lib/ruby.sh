@@ -30,9 +30,10 @@ install_rbenv_and_ruby() {
 
   # install ruby
   RUBY_VERSION=$(cat .ruby-version)
-  if rbenv version-name = "$RUBY_VERSION" &> /dev/null
+  if [[ "$(rbenv version-name)" == "$RUBY_VERSION" ]] &> /dev/null
   then
     echo -e "${BLUE}Using ruby $(rbenv version-name)${NC}"
+
   else
     echo -e "${WHITE}Installing ruby $RUBY_VERSION...${NC}"
     if rbenv install $RUBY_VERSION -s && rbenv global $RUBY_VERSION &> /dev/null

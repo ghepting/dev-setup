@@ -1,0 +1,19 @@
+#!/bin/bash
+case "$1" in
+  init)
+    echo "echo 'MOCKED: rbenv init'"
+    ;;
+  version-name)
+    echo "3.3.0-mock"
+    ;;
+  install)
+    echo "MOCKED: rbenv install $*"
+    ;;
+  global)
+    echo "MOCKED: rbenv global $*"
+    ;;
+  *)
+    echo "rbenv version 1.2.0-mock"
+    ;;
+esac
+exit 0
