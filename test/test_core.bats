@@ -8,7 +8,7 @@ setup() {
   mkdir -p "$TEST_HOME"
 
   # Only load utils by default
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
 
   # Set up mocks AFTER loading libs to ensure they take precedence
   setup_mocks

@@ -245,14 +245,14 @@ load_lib() {
   local repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
   if [[ -z "$PLATFORM" ]]; then
-    source "$repo_root/lib/vars.sh"
+    source "$repo_root/lib/core/vars.sh"
   fi
 
   if ! typeset -f is_macos > /dev/null; then
-    source "$repo_root/lib/utils.sh"
+    source "$repo_root/lib/core/utils.sh"
   fi
 
-  if [[ "$lib_file" != "lib/vars.sh" && "$lib_file" != "lib/utils.sh" ]]; then
+  if [[ "$lib_file" != "lib/core/vars.sh" && "$lib_file" != "lib/core/utils.sh" ]]; then
     source "$repo_root/$lib_file"
   fi
 

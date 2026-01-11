@@ -3,8 +3,8 @@
 # This script installs development dependencies required for working ON dev-setup.
 
 # source variables and utility functions
-source "./lib/vars.sh"
-source "./lib/utils.sh"
+source "./lib/core/vars.sh"
+source "./lib/core/utils.sh"
 
 echo -e "${WHITE}Bootstrapping dev-setup repository...${NC}"
 

@@ -16,8 +16,8 @@ setup() {
   export PATH="$MOCKS_DIR:$PATH"
 
   # Source core libs
-  source "lib/vars.sh"
-  source "lib/utils.sh"
+  source "lib/core/vars.sh"
+  source "lib/core/utils.sh"
 
   # Export functions so 'run' can find them in subshells
   export -f detect_platform is_macos is_linux is_debian is_arch is_fedora is_enabled install_pkg

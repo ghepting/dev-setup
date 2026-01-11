@@ -11,7 +11,7 @@ setup() {
 }
 
 @test "Helpers: is_macos, is_linux, is_debian, is_arch, is_fedora work" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
 
   export PLATFORM="macOS"
   is_macos
@@ -41,7 +41,7 @@ setup() {
 }
 
 @test "Detection: identifies macOS via uname" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   uname() { echo "Darwin"; }
   export -f uname
   detect_platform
@@ -49,7 +49,7 @@ setup() {
 }
 
 @test "Detection: identifies Debian via _get_linux_distro" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   uname() { echo "Linux"; }
   export -f uname
   _get_linux_distro() { echo "debian"; }
@@ -59,7 +59,7 @@ setup() {
 }
 
 @test "Detection: identifies Ubuntu as Debian via _get_linux_distro" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   uname() { echo "Linux"; }
   export -f uname
   _get_linux_distro() { echo "ubuntu"; }
@@ -69,7 +69,7 @@ setup() {
 }
 
 @test "Detection: identifies Arch via _get_linux_distro" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   uname() { echo "Linux"; }
   export -f uname
   _get_linux_distro() { echo "arch"; }
@@ -79,7 +79,7 @@ setup() {
 }
 
 @test "Detection: identifies Fedora via _get_linux_distro" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   uname() { echo "Linux"; }
   export -f uname
   _get_linux_distro() { echo "fedora"; }
@@ -89,7 +89,7 @@ setup() {
 }
 
 @test "Detection: identifies generic Linux when _get_linux_distro returns unknown" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   uname() { echo "Linux"; }
   export -f uname
   _get_linux_distro() { echo "unknown_distro"; }
@@ -99,7 +99,7 @@ setup() {
 }
 
 @test "Detection: identifies generic Linux via uname if _get_linux_distro returns empty" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   uname() { echo "Linux"; }
   export -f uname
   _get_linux_distro() { echo ""; }
@@ -109,7 +109,7 @@ setup() {
 }
 
 @test "Detection: returns Unknown for other systems" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   uname() { echo "FreeBSD"; }
   export -f uname
 
@@ -118,7 +118,7 @@ setup() {
 }
 
 @test "install_pkg: uses brew on macOS" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   setup_mocks
   export PLATFORM="macOS"
   export MOCK_PKG_INSTALLED=""
@@ -128,7 +128,7 @@ setup() {
 }
 
 @test "install_pkg: uses apt on Debian" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   setup_mocks
   export PLATFORM="Debian"
   export MOCK_PKG_INSTALLED=""
@@ -138,7 +138,7 @@ setup() {
 }
 
 @test "install_pkg: uses pacman on Arch" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   setup_mocks
   export PLATFORM="Arch"
   export MOCK_PKG_INSTALLED=""
@@ -148,7 +148,7 @@ setup() {
 }
 
 @test "install_pkg: uses dnf on Fedora" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   setup_mocks
   export PLATFORM="Fedora"
   export MOCK_PKG_INSTALLED=""
@@ -158,7 +158,7 @@ setup() {
 }
 
 @test "install_pkg: skips if already installed (apt)" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   setup_mocks
   export PLATFORM="Debian"
   export MOCK_PKG_INSTALLED="test-pkg"
@@ -168,7 +168,7 @@ setup() {
 }
 
 @test "install_pkg: skips if already installed (pacman)" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   setup_mocks
   export PLATFORM="Arch"
   export MOCK_PKG_INSTALLED="test-pkg"
@@ -178,7 +178,7 @@ setup() {
 }
 
 @test "install_pkg: skips if already installed (dnf/rpm)" {
-  load_lib "lib/utils.sh"
+  load_lib "lib/core/utils.sh"
   setup_mocks
   export PLATFORM="Fedora"
   export MOCK_PKG_INSTALLED="test-pkg"

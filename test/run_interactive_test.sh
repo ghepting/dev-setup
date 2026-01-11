@@ -17,7 +17,7 @@ echo "Your repository is mounted at ~/dev-setup"
 echo ""
 echo "Try running:"
 echo "  ./bin/setup         # Runs the full setup"
-echo "  source lib/utils.sh # Test individual functions"
+echo "  source lib/core/utils.sh # Test individual functions"
 echo "--------------------------------------------------------"
 
 docker run --rm -it \

@@ -4,8 +4,8 @@
 [ -z "$ZSH_VERSION" ] && { echo "Error: This script must be run in zsh."; exit 1; }
 
 # source variables and utility functions
-source "./lib/vars.sh"
-source "./lib/utils.sh"
+source "./lib/core/vars.sh"
+source "./lib/core/utils.sh"
 
 for lib in ./lib/modules/*.sh; do
   source "$lib"

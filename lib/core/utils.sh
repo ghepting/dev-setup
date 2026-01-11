@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-# Utility functions that depend on PLATFORM being set in lib/vars.sh
+# Utility functions that depend on PLATFORM being set in lib/core/vars.sh
 
 is_macos() {
   [[ "$PLATFORM" == "macOS" ]]
