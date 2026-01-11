@@ -55,10 +55,9 @@ setup() {
 
     # In bin/setup, only patch read calls outside prompt_config (lines 58-112)
     sed -i.bak -e '1,57{/^[[:space:]]*read /d; /^[[:space:]]*read$/d; /^[[:space:]]*read?/d;}' \
-               -e '113,999{/^[[:space:]]*read /d; /^[[:space:]]*read$/d; /^[[:space:]]*read?/d;}' \
-               "$PROJECT_DIR/bin/setup"
+      -e '113,999{/^[[:space:]]*read /d; /^[[:space:]]*read$/d; /^[[:space:]]*read?/d;}' \
+      "$PROJECT_DIR/bin/setup"
   }
-
 
   # PATCH: Remove host-specific Homebrew/Ghostty path evals
   sed -i.bak '/shellenv/d' "$PROJECT_DIR/lib/modules/brew.sh"
@@ -210,14 +209,12 @@ setup() {
   # Run with zsh explicitly to ensure prompt-reading behavior matches reality
   export MOCK_UNAME="Darwin"
   export PLATFORM="macOS"
-  run zsh -c "export PATH=\"$PATH\"; export MOCK_UNAME=\"$MOCK_UNAME\"; export PLATFORM=\"$PLATFORM\"; printf 'y\n\nn\n\n\n\n\ny\n\n\n\n\n\n' | ./bin/setup"
+  run zsh -c "export PATH=\"$PATH\"; export MOCK_UNAME=\"$MOCK_UNAME\"; export PLATFORM=\"$PLATFORM\"; printf 'y\n\nn\n\n\n\n\n\n\ny\n\n\n\n\n\n' | ./bin/setup"
   if [ "$status" -ne 0 ]; then
     echo "Interactive setup failed with output:"
     echo "$output"
     return 1
   fi
-
-
 
   # Verify persistence
   grep "^python=true" "$CONFIG_FILE"

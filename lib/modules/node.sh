@@ -3,8 +3,7 @@
 install_nvm_and_node() {
   # install nvm
   export NVM_DIR="$HOME/.nvm"
-  if [ -s "$NVM_DIR/nvm.sh" ]
-  then
+  if [ -s "$NVM_DIR/nvm.sh" ]; then
     . "$NVM_DIR/nvm.sh"
 
     echo -e "${BLUE}Using nvm $(nvm --version)${NC}"
@@ -14,8 +13,7 @@ install_nvm_and_node() {
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | zsh
 
     # source nvm
-    if [ -s "$NVM_DIR/nvm.sh" ]
-    then
+    if [ -s "$NVM_DIR/nvm.sh" ]; then
       . "$NVM_DIR/nvm.sh"
       echo -e "${GREEN}Successfully installed nvm $(nvm --version)${NC}"
       RESTART_REQUIRED=true
@@ -26,8 +24,7 @@ install_nvm_and_node() {
   fi
 
   # add nvm to ~/.zshrc
-  if ! grep -q "NVM_DIR" "$ZSHRC_FILE"
-  then
+  if ! grep -q "NVM_DIR" "$ZSHRC_FILE"; then
     echo '' >> "$ZSHRC_FILE"
     echo '# nvm' >> "$ZSHRC_FILE"
     echo 'export NVM_DIR="$HOME/.nvm"' >> "$ZSHRC_FILE"
@@ -39,11 +36,9 @@ install_nvm_and_node() {
 
   # install node & npm
   NODE_VERSION=$(cat .nvmrc 2> /dev/null || echo "lts/*")
-  if [[ "$(node -v)" != "$NODE_VERSION" ]]
-  then
+  if [[ "$(node -v)" != "$NODE_VERSION" ]]; then
     echo -e "${WHITE}Installing node $NODE_VERSION via nvm...${NC}"
-    if nvm install "$NODE_VERSION" -s
-    then
+    if nvm install "$NODE_VERSION" -s; then
       nvm alias default "$NODE_VERSION"
       echo -e "${GREEN}Successfully installed node $NODE_VERSION${NC}"
       RESTART_REQUIRED=true

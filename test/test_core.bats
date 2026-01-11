@@ -59,11 +59,11 @@ setup() {
   echo "docker=true" > "$CONFIG_FILE"
   run is_enabled "docker"
   [ "$status" -eq 0 ]
-  
+
   echo "dotfiles=false" >> "$CONFIG_FILE"
   run is_enabled "dotfiles"
   [ "$status" -eq 1 ]
-  
+
   rm -f "$CONFIG_FILE"
 }
 
@@ -138,25 +138,49 @@ setup() {
   echo "$output" | grep -q "MOCKED: sudo pacman -S --noconfirm docker"
 }
 
-@test "1Password: handles platform specific paths and opt-in" {
+@test "1Password GUI: handles macOS and Debian" {
   load_lib "lib/modules/1password.sh"
+  setup_mocks
+
   export PLATFORM="macOS"
+  export MOCKED_APP_INSTALLED=""
+  run setup_1password
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q "Installing 1Password GUI for macOS"
+
+  export PLATFORM="Debian"
+  export MOCKED_NOT_FOUND="1password"
+  run setup_1password
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q "Installing 1Password GUI for Debian"
+}
+
+@test "1Password CLI: handles installation and sign-in" {
+  load_lib "lib/modules/1password_cli.sh"
+  setup_mocks
+
+  export PLATFORM="macOS"
+  export MOCKED_NOT_FOUND="op"
   # Mock op whoami to skip interactive part
   op() { if [[ "$1" == "whoami" ]]; then return 0; fi; }
   export -f op
-  run setup_1password
+
+  run setup_1password_cli
   [ "$status" -eq 0 ]
-
-  export PLATFORM="Debian"
-  # Should skip by default
-  run setup_1password
-  echo "$output" | grep -q "skipped on Debian"
-
-  # Should run with explicit opt-in
-  echo "op=true" > "$CONFIG_FILE"
-  export MOCKED_NOT_FOUND="op"
-  run setup_1password
   echo "$output" | grep -q "Installing 1Password CLI"
+}
+
+@test "1Password SSH: configures agent and agent.toml" {
+  load_lib "lib/modules/1password_ssh.sh"
+  setup_mocks
+
+  export PLATFORM="macOS"
+  echo "1password=true" > "$CONFIG_FILE"
+
+  run setup_1password_ssh
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q "Using 1Password SSH agent" || echo "$output" | grep -q "Added 1Password SSH agent"
+  echo "$output" | grep -q "Using 1Password \"Development\" vault" || echo "$output" | grep -q "Configured $HOME/.config/1Password/ssh/agent.toml" || echo "$output" | grep -q "Created $HOME/.config/1Password/ssh/agent.toml"
 }
 
 @test "Languages: installs correctly when enabled" {
@@ -190,7 +214,7 @@ setup() {
   echo "google_drive=true" > "$CONFIG_FILE"
 
   export PLATFORM="macOS"
-  export MOCKED_APP_INSTALLED="" # Not installed
+  export MOCKED_APP_INSTALLED=""         # Not installed
   export MOCKED_NOT_FOUND="google-drive" # Not in PATH
   run setup_google_drive
   echo "$output" | grep -q "Google Drive for macOS"

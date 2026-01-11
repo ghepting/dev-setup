@@ -6,8 +6,7 @@ configure_editor() {
   fi
 
   # configure default EDITOR in ~/.zshrc
-  if ! grep -q "export EDITOR" "$ZSHRC_FILE"
-  then
+  if ! grep -q "export EDITOR" "$ZSHRC_FILE"; then
     echo "export EDITOR=\"$preferred_editor\"" >> "$ZSHRC_FILE"
     echo -e "${GREEN}Configured $preferred_editor as EDITOR in $ZSHRC_FILE${NC}"
   fi
@@ -15,15 +14,14 @@ configure_editor() {
   # macOS-specific file associations
   if is_macos; then
     if ! check_app "Antigravity"; then
-       echo -e "${GRAY}Antigravity not found, skipping file associations${NC}"
-       return
+      echo -e "${GRAY}Antigravity not found, skipping file associations${NC}"
+      return
     fi
 
     # verify duti is installed
-    ANTIGRAVITY_BUNDLE_ID=$(mdls -name kMDItemCFBundleIdentifier -r /Applications/Antigravity.app 2>/dev/null || echo "com.google.Antigravity")
+    ANTIGRAVITY_BUNDLE_ID=$(mdls -name kMDItemCFBundleIdentifier -r /Applications/Antigravity.app 2> /dev/null || echo "com.google.Antigravity")
 
-    if ! command -v duti &> /dev/null
-    then
+    if ! command -v duti &> /dev/null; then
       brew install duti
       echo -e "${GREEN}Installed duti${NC}"
       RESTART_REQUIRED=true
@@ -132,10 +130,8 @@ configure_editor() {
       .prisma
     )
 
-    for format in "${FORMATS[@]}"
-    do
-      if ! duti -s "$ANTIGRAVITY_BUNDLE_ID" "$format" all
-      then
+    for format in "${FORMATS[@]}"; do
+      if ! duti -s "$ANTIGRAVITY_BUNDLE_ID" "$format" all; then
         duti -s "$ANTIGRAVITY_BUNDLE_ID" "$format" all
         echo -e "${GREEN}Configured Antigravity as default editor for $format files${NC}"
       fi
@@ -154,7 +150,7 @@ install_antigravity_extensions() {
   echo -e "${WHITE}Installing Antigravity extensions...${NC}"
 
   local installed_extensions
-  installed_extensions=$(agy --list-extensions 2>/dev/null)
+  installed_extensions=$(agy --list-extensions 2> /dev/null)
 
   while read -r extension; do
     if [ -z "$extension" ]; then
@@ -181,7 +177,7 @@ update_antigravity_extensions_list() {
 
   # Redirect stderr to /dev/null because agy is currently emitting V8 fatal errors
   # but still successfully printing the list to stdout.
-  agy --list-extensions > "$extensions_file" 2>/dev/null
+  agy --list-extensions > "$extensions_file" 2> /dev/null
 
   # Verify if updates were actually written (checking file size)
   if [[ -s "$extensions_file" ]]; then

@@ -25,23 +25,23 @@ is_fedora() {
 install_pkg() {
   local package=$1
   if is_macos; then
-    if ! brew list "$package" &>/dev/null; then
+    if ! brew list "$package" &> /dev/null; then
       echo -e "${WHITE}Installing $package via Homebrew...${NC}"
       brew install "$package"
     fi
   elif is_debian; then
-    if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q "ok installed"; then
+    if ! dpkg-query -W -f='${Status}' "$package" 2> /dev/null | grep -q "ok installed"; then
       echo -e "${WHITE}Installing $package via apt...${NC}"
       sudo apt-get update
       sudo apt-get install -y "$package"
     fi
   elif is_arch; then
-    if ! pacman -Qs "^$package$" &>/dev/null; then
+    if ! pacman -Qs "^$package$" &> /dev/null; then
       echo -e "${WHITE}Installing $package via pacman...${NC}"
       sudo pacman -S --noconfirm "$package"
     fi
   elif is_fedora; then
-    if ! rpm -q "$package" &>/dev/null; then
+    if ! rpm -q "$package" &> /dev/null; then
       echo -e "${WHITE}Installing $package via dnf...${NC}"
       sudo dnf install -y "$package"
     fi
@@ -62,18 +62,18 @@ is_enabled() {
 
   # Default values if not explicitly set
   case "$module" in
-    dotfiles|vim_tmux)
-      return 0 # Always enabled by default
-      ;;
-    editor)
-      is_macos && return 0
-      return 1 # GUI IDE setup disabled by default on Linux
-      ;;
-    *)
-      # For everything else (docker, languages, op, google_drive, etc.)
-      is_macos && return 0 # Enable on Mac
-      return 1 # Disable on Linux
-      ;;
+  dotfiles | vim_tmux)
+    return 0 # Always enabled by default
+    ;;
+  editor)
+    is_macos && return 0
+    return 1 # GUI IDE setup disabled by default on Linux
+    ;;
+  *)
+    # For everything else (docker, languages, op_cli, 1password_ssh, google_drive, etc.)
+    is_macos && return 0 # Enable on Mac
+    return 1             # Disable on Linux
+    ;;
   esac
 }
 
@@ -82,14 +82,13 @@ set_config_value() {
   local key=$1
   local value=$2
 
-  if grep -q "^${key}=" "$CONFIG_FILE" 2>/dev/null; then
+  if grep -q "^${key}=" "$CONFIG_FILE" 2> /dev/null; then
     sed -i.bak "s|^${key}=.*|${key}=${value}|" "$CONFIG_FILE"
     rm -f "${CONFIG_FILE}.bak"
   else
     echo "${key}=${value}" >> "$CONFIG_FILE"
   fi
 }
-
 
 is_ssh() {
   [[ -n "$SSH_CONNECTION" || -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]
@@ -108,15 +107,14 @@ setup_google_drive() {
   local gdrive_type="app"
   is_linux && gdrive_type="rclone"
 
-  if grep -q "^google_drive_type=rclone$" "$CONFIG_FILE" 2>/dev/null; then
+  if grep -q "^google_drive_type=rclone$" "$CONFIG_FILE" 2> /dev/null; then
     gdrive_type="rclone"
-  elif grep -q "^google_drive_type=app$" "$CONFIG_FILE" 2>/dev/null; then
+  elif grep -q "^google_drive_type=app$" "$CONFIG_FILE" 2> /dev/null; then
     gdrive_type="app"
   fi
 
   if is_macos && [[ "$gdrive_type" == "app" ]]; then
-    if ! check_app "Google Drive"
-    then
+    if ! check_app "Google Drive"; then
       echo -e "${YELLOW}Installing Google Drive for macOS...${NC}"
       brew install --cask google-drive
       open /Applications/Google\ Drive.app
@@ -136,7 +134,7 @@ setup_google_drive() {
     fi
 
     # Check if it's already mounted (simple check for files)
-    if [ -z "$(ls -A "$gdrive_mount" 2>/dev/null)" ]; then
+    if [ -z "$(ls -A "$gdrive_mount" 2> /dev/null)" ]; then
       echo -e "${YELLOW}Google Drive is not mounted at $gdrive_mount${NC}"
       echo -e "${WHITE}Please ensure rclone is configured with a 'gdrive' remote.${NC}"
       if ! rclone listremotes | grep -q "gdrive:"; then

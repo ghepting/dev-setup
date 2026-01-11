@@ -1,14 +1,14 @@
 #!/usr/bin/env zsh
 case "$1" in
-  listremotes)
-    echo "gdrive:"
-    ;;
-  mount)
-    echo "MOCKED: rclone mount success"
-    exit 0
-    ;;
-  *)
-    echo "MOCKED: rclone $*"
-    ;;
+listremotes)
+  echo "gdrive:"
+  ;;
+mount)
+  echo "MOCKED: rclone mount success"
+  exit 0
+  ;;
+*)
+  echo "MOCKED: rclone $*"
+  ;;
 esac
 exit 0

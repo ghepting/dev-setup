@@ -1,8 +1,7 @@
 #!/usr/bin/env zsh
 
 install_pyenv_and_python() {
-  if ! command -v pyenv &> /dev/null
-  then
+  if ! command -v pyenv &> /dev/null; then
     if is_debian; then
       # Build dependencies for pyenv
       local deps=("build-essential" "libssl-dev" "zlib1g-dev" "libbz2-dev" "libreadline-dev" "libsqlite3-dev" "curl" "git" "libncursesw5-dev" "xz-utils" "tk-dev" "libxml2-dev" "libxmlsec1-dev" "libffi-dev" "liblzma-dev" "pyenv")
@@ -18,14 +17,12 @@ install_pyenv_and_python() {
   fi
 
   # run 'eval "$(pyenv init -)"' to use pyenv commands in the current script session
-  if command -v pyenv &> /dev/null
-  then
+  if command -v pyenv &> /dev/null; then
     eval "$(pyenv init -)"
   fi
 
   # add pyenv init to .zshrc
-  if ! grep -q "pyenv init" "$ZSHRC_FILE"
-  then
+  if ! grep -q "pyenv init" "$ZSHRC_FILE"; then
     echo '' >> "$ZSHRC_FILE"
     echo '# pyenv' >> "$ZSHRC_FILE"
     echo 'export PYENV_ROOT="$HOME/.pyenv"' >> "$ZSHRC_FILE"
@@ -39,21 +36,19 @@ install_pyenv_and_python() {
   PYTHON_VERSION=$(cat .python-version 2> /dev/null || echo "3.14.2")
 
   # check if the desired version is already installed by pyenv
-  if pyenv versions --bare | grep -q "^$PYTHON_VERSION$"
-  then
+  if pyenv versions --bare | grep -q "^$PYTHON_VERSION$"; then
     echo -e "${BLUE}Using python $PYTHON_VERSION${NC}"
   else
     echo -e "${WHITE}Installing python $PYTHON_VERSION...${NC}"
-    if pyenv install $PYTHON_VERSION &> /dev/null
-    then
+    if pyenv install $PYTHON_VERSION &> /dev/null; then
       echo -e "${GREEN}Successfully installed python $PYTHON_VERSION${NC}"
       RESTART_REQUIRED=true
       # set global default and report
       pyenv global "$PYTHON_VERSION" &> /dev/null
 
       PYTHON_EXECUTABLE=$(pyenv which python)
-      PYTHON_VERSION=$($PYTHON_EXECUTABLE --version 2>/dev/null | awk '{print $2}')
-      PIP_VERSION=$($PYTHON_EXECUTABLE -m pip --version 2>/dev/null | awk '{print $2}')
+      PYTHON_VERSION=$($PYTHON_EXECUTABLE --version 2> /dev/null | awk '{print $2}')
+      PIP_VERSION=$($PYTHON_EXECUTABLE -m pip --version 2> /dev/null | awk '{print $2}')
 
       echo -e "${BLUE}Default python set to $PYTHON_VERSION / pip $PIP_VERSION${NC}"
     else

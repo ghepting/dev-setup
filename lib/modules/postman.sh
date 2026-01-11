@@ -5,16 +5,13 @@ install_postman_cli() {
   NPM_PACKAGE="postman-cli"
   NPM_INSTALL_ARGS=(install -g --no-audit --no-fund --loglevel silent)
 
-  if command -v postman &> /dev/null
-  then
+  if command -v postman &> /dev/null; then
     echo -e "${BLUE}Using postman $(postman --version)${NC}"
   else
     # check if postman is enabled in config file
-    if is_enabled "postman_cli"
-    then
+    if is_enabled "postman_cli"; then
       echo -e "${WHITE}Installing Postman CLI...${NC}"
-      if npm $NPM_INSTALL_ARGS $NPM_PACKAGE
-      then
+      if npm $NPM_INSTALL_ARGS $NPM_PACKAGE; then
         echo -e "${GREEN}Successfully installed $NPM_PACKAGE${NC}"
         RESTART_REQUIRED=true
       else

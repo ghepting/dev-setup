@@ -2,8 +2,7 @@
 
 install_rbenv_and_ruby() {
   # install rbenv
-  if ! command -v rbenv &> /dev/null
-  then
+  if ! command -v rbenv &> /dev/null; then
     if is_debian; then
       # Build dependencies for ruby-build
       local deps=("autoconf" "bison" "build-essential" "libssl-dev" "libyaml-dev" "libreadline6-dev" "zlib1g-dev" "libncurses5-dev" "libffi-dev" "libgdbm6" "libgdbm-dev" "libdb-dev" "rbenv")
@@ -19,8 +18,7 @@ install_rbenv_and_ruby() {
   fi
 
   # add rbenv init to .zshrc
-  if ! grep -q "rbenv init" "$ZSHRC_FILE"
-  then
+  if ! grep -q "rbenv init" "$ZSHRC_FILE"; then
     echo '' >> "$ZSHRC_FILE"
     echo '# rbenv' >> "$ZSHRC_FILE"
     echo 'eval "$(rbenv init -)"' >> "$ZSHRC_FILE"
@@ -30,14 +28,12 @@ install_rbenv_and_ruby() {
 
   # install ruby
   RUBY_VERSION=$(cat .ruby-version)
-  if [[ "$(rbenv version-name)" == "$RUBY_VERSION" ]] &> /dev/null
-  then
+  if [[ "$(rbenv version-name)" == "$RUBY_VERSION" ]] &> /dev/null; then
     echo -e "${BLUE}Using ruby $(rbenv version-name)${NC}"
 
   else
     echo -e "${WHITE}Installing ruby $RUBY_VERSION...${NC}"
-    if rbenv install $RUBY_VERSION -s && rbenv global $RUBY_VERSION &> /dev/null
-    then
+    if rbenv install $RUBY_VERSION -s && rbenv global $RUBY_VERSION &> /dev/null; then
       echo -e "${GREEN}Successfully installed ruby $RUBY_VERSION via rbenv${NC}"
       RESTART_REQUIRED=true
     else

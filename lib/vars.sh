@@ -32,18 +32,18 @@ detect_platform() {
     local distro
     distro=$(_get_linux_distro)
     case "$distro" in
-      debian|ubuntu|pop|kali)
-        export PLATFORM="Debian"
-        ;;
-      arch|manjaro)
-        export PLATFORM="Arch"
-        ;;
-      fedora|centos|rhel)
-        export PLATFORM="Fedora"
-        ;;
-      *)
-        export PLATFORM="Linux"
-        ;;
+    debian | ubuntu | pop | kali)
+      export PLATFORM="Debian"
+      ;;
+    arch | manjaro)
+      export PLATFORM="Arch"
+      ;;
+    fedora | centos | rhel)
+      export PLATFORM="Fedora"
+      ;;
+    *)
+      export PLATFORM="Linux"
+      ;;
     esac
   else
     export PLATFORM="Unknown"

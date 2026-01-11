@@ -2,8 +2,7 @@
 
 setup_docker() {
   # check if docker is installed/running
-  if ! command -v docker &> /dev/null
-  then
+  if ! command -v docker &> /dev/null; then
     if is_macos; then
       echo -e "${YELLOW}Installing Docker Desktop...${NC}"
       brew install --cask docker
@@ -18,10 +17,10 @@ setup_docker() {
         sudo chmod a+r /etc/apt/keyrings/docker.asc
 
         local codename
-        codename=$(grep VERSION_CODENAME /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '"')
-        codename=${codename:-$(lsb_release -cs 2>/dev/null || echo "stable")}
+        codename=$(grep VERSION_CODENAME /etc/os-release 2> /dev/null | cut -d= -f2 | tr -d '"')
+        codename=${codename:-$(lsb_release -cs 2> /dev/null || echo "stable")}
 
-        echo "deb [arch=$(dpkg --print-architecture 2>/dev/null || echo "amd64") signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $codename stable" | \
+        echo "deb [arch=$(dpkg --print-architecture 2> /dev/null || echo "amd64") signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $codename stable" |
           sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
         sudo apt-get update
@@ -54,8 +53,7 @@ setup_docker() {
     echo -e "${BLUE}Using $(docker compose version)${NC}"
 
     # run command "docker info" and grep for "failed to connect to the docker API"
-    if ! docker info &> /dev/null
-    then
+    if ! docker info &> /dev/null; then
       echo -e "${YELLOW}Starting Docker daemon...${NC}"
       open /Applications/Docker.app
       read "?Press [Enter] after logging in to Docker..."

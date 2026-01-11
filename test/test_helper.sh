@@ -32,13 +32,13 @@ setup_mocks() {
     shift
     echo "MOCKED: sudo $cmd $*" >&2
     case "$cmd" in
-      apt-get|pacman|dnf|update-alternatives|install|curl|chmod|tee)
-        # For these commands, we just echo that they were mocked
-        # Some might need actual execution or further mocking if output is required
-        ;;
-      *)
-        # Already echoed above
-        ;;
+    apt-get | pacman | dnf | update-alternatives | install | curl | chmod | tee)
+      # For these commands, we just echo that they were mocked
+      # Some might need actual execution or further mocking if output is required
+      ;;
+    *)
+      # Already echoed above
+      ;;
     esac
   }
   export -f sudo
@@ -49,11 +49,11 @@ setup_mocks() {
   export -f apt-get
 
   dpkg() {
-     if [[ "$*" == *"--print-architecture"* ]]; then
-        echo "amd64"
-        return 0
-     fi
-     echo "MOCKED: dpkg $*" >&2
+    if [[ "$*" == *"--print-architecture"* ]]; then
+      echo "amd64"
+      return 0
+    fi
+    echo "MOCKED: dpkg $*" >&2
   }
   export -f dpkg
 
@@ -153,12 +153,12 @@ setup_mocks() {
   # Mock command -v to allow simulating missing binaries
   command() {
     if [[ "$1" == "-v" ]]; then
-       # Exact word matching for MOCKED_NOT_FOUND
-       for pkg in $MOCKED_NOT_FOUND; do
-         if [[ "$pkg" == "$2" ]]; then
-           return 1
-         fi
-       done
+      # Exact word matching for MOCKED_NOT_FOUND
+      for pkg in $MOCKED_NOT_FOUND; do
+        if [[ "$pkg" == "$2" ]]; then
+          return 1
+        fi
+      done
     fi
     builtin command "$@"
   }
@@ -185,9 +185,9 @@ setup_mocks() {
   curl() {
     echo "MOCKED: curl $*" >&2
     if [[ "$*" == *"claude.ai/install.sh"* ]]; then
-       # Simulate the installer script
-       echo "echo 'Successfully installed claude'"
-       return 0
+      # Simulate the installer script
+      echo "echo 'Successfully installed claude'"
+      return 0
     fi
   }
   export -f curl
@@ -240,10 +240,17 @@ load_lib() {
   mkdir -p "$HOME/.config"
   touch "$ZSHRC_FILE"
 
-  # Always source vars and utils first
+  # Always source vars and utils first, but only if not already loaded
+  # to avoid overwriting mocks
   local repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-  source "$repo_root/lib/vars.sh"
-  source "$repo_root/lib/utils.sh"
+
+  if [[ -z "$PLATFORM" ]]; then
+    source "$repo_root/lib/vars.sh"
+  fi
+
+  if ! typeset -f is_macos > /dev/null; then
+    source "$repo_root/lib/utils.sh"
+  fi
 
   if [[ "$lib_file" != "lib/vars.sh" && "$lib_file" != "lib/utils.sh" ]]; then
     source "$repo_root/$lib_file"
@@ -259,6 +266,7 @@ load_lib() {
       export -f "$f"
     done
   fi
-  # Also always export core functions
+  # Also always export core functions and ensure mocks take precedence
+  setup_mocks
   export -f detect_platform is_macos is_linux is_debian is_arch is_fedora is_enabled install_pkg is_ssh check_app
 }

@@ -37,7 +37,9 @@ prompt_config() {
     "dotfiles"
     "vim_tmux"
     "editor"
-    "op"
+    "1password"
+    "op_cli"
+    "1password_ssh"
     "ruby"
     "python"
     "node"
@@ -149,9 +151,15 @@ if [[ "${(%):-%N}" == "$0" ]]; then
     setup_vim_tmux_config
   fi
 
-  # 1password and SSH agent
-  if is_enabled "op"; then
+  # 1password modules
+  if is_enabled "1password"; then
     setup_1password
+  fi
+  if is_enabled "op_cli"; then
+    setup_1password_cli
+  fi
+  if is_enabled "1password_ssh"; then
+    setup_1password_ssh
   fi
 
   # gemini CLI

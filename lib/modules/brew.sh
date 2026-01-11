@@ -1,8 +1,7 @@
 #!/usr/bin/env zsh
 
 install_homebrew() {
-  if ! command -v brew &> /dev/null
-  then
+  if ! command -v brew &> /dev/null; then
     echo -e "${WHITE}Installing Homebrew...${NC}"
     /usr/bin/env zsh -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     RESTART_REQUIRED=true
@@ -26,8 +25,7 @@ install_homebrew_path() {
 
   # ensure brew bins are added to $PATH
   BREW_PREFIX_CMD='export PATH="$(brew --prefix)/bin:$PATH"'
-  if ! grep -qF "$BREW_PREFIX_CMD" "$ZSHRC_FILE"
-  then
+  if ! grep -qF "$BREW_PREFIX_CMD" "$ZSHRC_FILE"; then
     echo '' >> "$ZSHRC_FILE"
     echo '# homebrew' >> "$ZSHRC_FILE"
     echo "$BREW_PREFIX_CMD" >> "$ZSHRC_FILE"
@@ -39,8 +37,7 @@ install_homebrew_path() {
 install_ghostty_path() {
   # add ghostty path to ~/.zshrc
   GHOSTTY_PATH_CMD='export PATH=$PATH:/Applications/Ghostty.app/Contents/MacOS'
-  if ! grep -qF "$GHOSTTY_PATH_CMD" "$ZSHRC_FILE"
-  then
+  if ! grep -qF "$GHOSTTY_PATH_CMD" "$ZSHRC_FILE"; then
     echo '' >> "$ZSHRC_FILE"
     echo '# ghostty' >> "$ZSHRC_FILE"
     echo "$GHOSTTY_PATH_CMD" >> "$ZSHRC_FILE"
@@ -59,7 +56,7 @@ install_homebrew_formulae() {
   echo -e "${BLUE}Using $(tmux -V)${NC}"
   echo -e "${BLUE}Using vim $(vim --version | head -n 1 | sed -E 's/.*([0-9]+\.[0-9]+).*/\1/')${NC}"
   echo -e "${BLUE}Using direnv $(direnv --version)${NC}"
-  echo -e "${BLUE}Using Antigravity $(agy -v 2>/dev/null | grep -E --color=no '^[0-9]+\.[0-9]+\.[0-9]+$')${NC}"
+  echo -e "${BLUE}Using Antigravity $(agy -v 2> /dev/null | grep -E --color=no '^[0-9]+\.[0-9]+\.[0-9]+$')${NC}"
   echo -e "${BLUE}Using Postman $(defaults read /Applications/Postman.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
   echo -e "${BLUE}Using $(ngrok --version)${NC}"
   echo -e "${BLUE}Using Google Drive $(defaults read /Applications/Google\ Drive.app/Contents/Info.plist CFBundleShortVersionString)${NC}"

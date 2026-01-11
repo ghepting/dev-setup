@@ -12,18 +12,18 @@ NC='\033[0m'
 echo -e "${YELLOW}Running pre-push tests...${NC}"
 
 # Check if bats is installed
-if ! command -v bats &> /dev/null; then
-    echo -e "${RED}Error: bats (test runner) is not installed.${NC}"
-    echo -e "${YELLOW}Please install bats-core or skip with --no-verify.${NC}"
-    exit 1
+if ! command -v bats &>/dev/null; then
+  echo -e "${RED}Error: bats (test runner) is not installed.${NC}"
+  echo -e "${YELLOW}Please install bats-core or skip with --no-verify.${NC}"
+  exit 1
 fi
 
 # Run the test suite
 if bats test/; then
-    echo -e "${GREEN}All tests passed! Proceeding with push.${NC}"
-    exit 0
+  echo -e "${GREEN}All tests passed! Proceeding with push.${NC}"
+  exit 0
 else
-    echo -e "${RED}Tests failed. Push aborted.${NC}"
-    echo -e "${YELLOW}Fix the failures or skip with --no-verify.${NC}"
-    exit 1
+  echo -e "${RED}Tests failed. Push aborted.${NC}"
+  echo -e "${YELLOW}Fix the failures or skip with --no-verify.${NC}"
+  exit 1
 fi
