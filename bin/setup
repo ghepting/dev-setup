@@ -3,41 +3,15 @@
 # Check if we are running in zsh
 [ -z "$ZSH_VERSION" ] && { echo "Error: This script must be run in zsh."; exit 1; }
 
-ZSHRC_FILE="$HOME/.zshrc"
-
-# colors
-RED="\e[31m"
-GREEN="\e[32m"
-YELLOW="\e[33m"
-BLUE="\e[34m"
-MAGENTA="\e[35m"
-CYAN="\e[36m"
-WHITE="\e[37m"
-NC="\e[0m" # No Color (Reset)
-
-RESTART_REQUIRED=false
-
-# source utility functions
+# source variables and utility functions
+source "./lib/vars.sh"
 source "./lib/utils.sh"
-source "./lib/brew.sh"
-source "./lib/ruby.sh"
-source "./lib/python.sh"
-source "./lib/node.sh"
-source "./lib/gemini.sh"
-source "./lib/vim_tmux.sh"
-source "./lib/1password.sh"
-source "./lib/dotfiles.sh"
-source "./lib/docker.sh"
-source "./lib/app_store.sh"
-source "./lib/claude.sh"
-source "./lib/editor.sh"
-source "./lib/iterm.sh"
-source "./lib/postman.sh"
+
+for lib in ./lib/modules/*.sh; do
+  source "$lib"
+done
 
 echo -e "${WHITE}Detected platform: ${PLATFORM}${NC}"
-
-CONFIG_DIR="${HOME}/.config"
-CONFIG_FILE="${CONFIG_DIR}/dev-setup.conf"
 
 # create config directory if it doesn't exist
 if [ ! -d "$CONFIG_DIR" ]
