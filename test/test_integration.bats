@@ -31,7 +31,7 @@ setup() {
 
   # Also remove prompt text to keep output clean but this is optional
   sed -i.bak '/echo -n "Press \[Enter\]/d' "$PROJECT_DIR/bin/setup"
-  sed -i.bak '/echo -n "Update.*\[y\/N\]/d' "$PROJECT_DIR/lib/gemini.sh"
+  sed -i.bak '/echo -n "Update.*\[y\/N\]/d' "$PROJECT_DIR/lib/modules/gemini.sh"
 
   # Helper for smoke tests to skip interactive config
   patch_smoke_tests() {
@@ -61,16 +61,16 @@ setup() {
 
 
   # PATCH: Remove host-specific Homebrew/Ghostty path evals
-  sed -i.bak '/shellenv/d' "$PROJECT_DIR/lib/brew.sh"
+  sed -i.bak '/shellenv/d' "$PROJECT_DIR/lib/modules/brew.sh"
   sed -i.bak '/ghostty/d' "$PROJECT_DIR/bin/setup"
   sed -i.bak '/iterm/d' "$PROJECT_DIR/bin/setup"
   sed -i.bak '/homebrew/d' "$PROJECT_DIR/bin/setup"
   sed -i.bak '/\${EDITOR:-vim}/d' "$PROJECT_DIR/bin/setup"
 
   # PATCH: Force dependencies not found to test installation logic
-  sed -i.bak 's/command -v docker/false/' "$PROJECT_DIR/lib/docker.sh"
-  sed -i.bak 's/command -v rbenv/false/' "$PROJECT_DIR/lib/ruby.sh"
-  sed -i.bak 's/command -v pyenv/false/' "$PROJECT_DIR/lib/python.sh"
+  sed -i.bak 's/command -v docker/false/' "$PROJECT_DIR/lib/modules/docker.sh"
+  sed -i.bak 's/command -v rbenv/false/' "$PROJECT_DIR/lib/modules/ruby.sh"
+  sed -i.bak 's/command -v pyenv/false/' "$PROJECT_DIR/lib/modules/python.sh"
 }
 
 @test "Integration: MacOS Smoke Test" {

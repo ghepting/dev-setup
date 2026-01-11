@@ -2,7 +2,6 @@
   "packages": {
     ".": {
       "release-type": "simple",
-      "package-name": "dev-setup",
       "version-file": "VERSION"
     }
   },

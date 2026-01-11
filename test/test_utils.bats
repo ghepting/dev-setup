@@ -15,7 +15,8 @@ setup() {
   export MOCKS_DIR="$BATS_TEST_DIRNAME/mocks"
   export PATH="$MOCKS_DIR:$PATH"
 
-  # Source utils.sh
+  # Source core libs
+  source "lib/vars.sh"
   source "lib/utils.sh"
 
   # Export functions so 'run' can find them in subshells

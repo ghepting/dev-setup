@@ -68,7 +68,7 @@ setup() {
 }
 
 @test "Editor: favors vim on Debian or SSH" {
-  load_lib "lib/editor.sh"
+  load_lib "lib/modules/editor.sh"
   export ZSHRC_FILE="/tmp/zshrc_test"
   echo "" > "$ZSHRC_FILE"
 
@@ -96,7 +96,7 @@ setup() {
 }
 
 @test "Dotfiles: correctly chooses paths" {
-  load_lib "lib/dotfiles.sh"
+  load_lib "lib/modules/dotfiles.sh"
   export PLATFORM="macOS"
   # Mock the Google Drive source
   mkdir -p "$TEST_HOME/Google Drive/My Drive/dotfiles/antigravity"
@@ -111,7 +111,7 @@ setup() {
 }
 
 @test "Docker: installs correctly when enabled" {
-  load_lib "lib/docker.sh"
+  load_lib "lib/modules/docker.sh"
   echo "docker=true" > "$CONFIG_FILE"
   export MOCKED_NOT_FOUND="docker"
 
@@ -129,7 +129,7 @@ setup() {
 }
 
 @test "1Password: handles platform specific paths and opt-in" {
-  load_lib "lib/1password.sh"
+  load_lib "lib/modules/1password.sh"
   export PLATFORM="macOS"
   # Mock op whoami to skip interactive part
   op() { if [[ "$1" == "whoami" ]]; then return 0; fi; }
@@ -153,9 +153,9 @@ setup() {
   export PLATFORM="macOS"
   export MOCKED_NOT_FOUND="rbenv pyenv nvm"
   # Sourcing explicitly to ensure fresh state for functions
-  load_lib "lib/ruby.sh"
-  load_lib "lib/python.sh"
-  load_lib "lib/node.sh"
+  load_lib "lib/modules/ruby.sh"
+  load_lib "lib/modules/python.sh"
+  load_lib "lib/modules/node.sh"
 
   run install_rbenv_and_ruby
   echo "$output" | grep -q "Installing rbenv"
@@ -187,9 +187,9 @@ setup() {
 }
 
 @test "CLI Tools: Gemini, Claude, and Postman installation" {
-  load_lib "lib/gemini.sh"
-  load_lib "lib/claude.sh"
-  load_lib "lib/postman.sh"
+  load_lib "lib/modules/gemini.sh"
+  load_lib "lib/modules/claude.sh"
+  load_lib "lib/modules/postman.sh"
 
   echo "gemini_cli=true" > "$CONFIG_FILE"
   echo "claude_code_cli=true" >> "$CONFIG_FILE"
@@ -214,7 +214,7 @@ setup() {
   export PLATFORM="Debian"
   export MOCKED_NOT_FOUND="vim"
 
-  load_lib "lib/vim_tmux.sh"
+  load_lib "lib/modules/vim_tmux.sh"
   run setup_vim_tmux_config
   echo "$output" | grep -q "Installing vim-nox"
   echo "$output" | grep -q "MOCKED: sudo update-alternatives --set vi /usr/bin/vim.nox"

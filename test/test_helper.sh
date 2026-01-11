@@ -239,23 +239,25 @@ load_lib() {
   mkdir -p "$HOME/.config"
   touch "$ZSHRC_FILE"
 
-  # Always source utils first as it provides platform detection
+  # Always source vars and utils first
   local repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  source "$repo_root/lib/vars.sh"
   source "$repo_root/lib/utils.sh"
 
-  if [[ "$lib_file" != "lib/utils.sh" ]]; then
+  if [[ "$lib_file" != "lib/vars.sh" && "$lib_file" != "lib/utils.sh" ]]; then
     source "$repo_root/$lib_file"
   fi
 
   # AUTO-EXPORT FUNCTIONS so 'run' can see them
   # This finds all function definitions in the just-sourced file
   local funcs
-  funcs=$(grep -E '^[a-z0-9_]+[[:space:]]*\(\)' "$repo_root/$lib_file" | cut -d'(' -f1 | xargs)
-  for f in $funcs; do
-    export -f "$f"
-  done
-  # Also always export is_macos/is_debian from utils
-  export -f is_macos
-  export -f is_debian
-  export -f is_ssh
+  # Only try to extract functions from the specific file we loaded if it's not core
+  if [[ -f "$repo_root/$lib_file" ]]; then
+    funcs=$(grep -E '^[a-z0-9_]+[[:space:]]*\(\)' "$repo_root/$lib_file" | cut -d'(' -f1 | xargs)
+    for f in $funcs; do
+      export -f "$f"
+    done
+  fi
+  # Also always export core functions
+  export -f detect_platform is_macos is_linux is_debian is_arch is_fedora is_enabled install_pkg is_ssh check_app
 }
