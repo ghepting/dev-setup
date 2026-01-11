@@ -1,0 +1,23 @@
+#!/usr/bin/env zsh
+
+# Conventional Commits regex
+# Format: type(scope)!: description
+# Types: feat, fix, chore, docs, style, refactor, perf, test, build, ci, revert
+REG_EXP="^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert)(\(.+\))?(!)?:\ .+"
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+if [[ ! "$COMMIT_MSG" =~ $REG_EXP ]]; then
+  echo -e "\e[31mError: Invalid commit message format.\e[0m"
+  echo -e "Your commit message must follow the Conventional Commits specification:"
+  echo -e "  <type>(<scope>)!: <description>"
+  echo -e ""
+  echo -e "Examples:"
+  echo -e "  feat: add login functionality"
+  echo -e "  fix(api): resolve timeout issue"
+  echo -e "  chore!: update dependencies"
+  echo -e ""
+  echo -e "See https://www.conventionalcommits.org/ for more details."
+  exit 1
+fi

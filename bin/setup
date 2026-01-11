@@ -193,6 +193,15 @@ if [[ "${(%):-%N}" == "$0" ]]; then
     install_mas_apps
   fi
 
+  # setup git hooks
+  if [ -d ".git" ]; then
+    if [[ "$(git config core.hooksPath)" != ".hooks" ]]; then
+      echo -e "${WHITE}Configuring git hooks...${NC}"
+      git config core.hooksPath .hooks
+      echo -e "${GREEN}Successfully configured core.hooksPath to .hooks/${NC}"
+    fi
+  fi
+
   echo -e "\n${GREEN}Dev setup completed successfully${NC}"
   if $RESTART_REQUIRED
   then
