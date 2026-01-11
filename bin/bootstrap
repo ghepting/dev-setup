@@ -1,0 +1,27 @@
+#!/usr/bin/env zsh
+# Bootstrap script for repository contributors
+# This script installs development dependencies required for working ON dev-setup.
+
+# source variables and utility functions
+source "./lib/vars.sh"
+source "./lib/utils.sh"
+
+echo -e "${WHITE}Bootstrapping dev-setup repository...${NC}"
+
+# Install core dev dependencies
+# - bats-core: test runner
+deps=("bats-core")
+
+for dep in "${deps[@]}"; do
+  install_pkg "$dep"
+done
+
+# Ensure hooks are set up
+if [ -d ".git" ]; then
+  echo -e "${WHITE}Configuring git hooks...${NC}"
+  git config core.hooksPath .hooks
+  echo -e "${GREEN}Git hooks configured to .hooks/${NC}"
+fi
+
+echo -e "\n${GREEN}Repository bootstrapped successfully!${NC}"
+echo -e "${YELLOW}You are now ready to contribute to dev-setup.${NC}"

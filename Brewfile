@@ -17,8 +17,6 @@ brew "universal-ctags"
 brew "gh"
 
 # development
-brew "shfmt"
-brew "shellcheck"
 cask "docker-desktop"
 cask "antigravity" # if this fails, try: brew install --cask antigravity --force --no-binaries
 cask "postman"

@@ -13,6 +13,13 @@ Note: If Homebrew is not already installed, it will prompt you for sudo access. 
 
 ## Development
 
+### Contributing
+To set up your local development environment for this repository, run:
+```bash
+./bin/bootstrap
+```
+This will install `bats-core` and configure git hooks to ensure tests pass and trailing whitespace is blocked.
+
 ### Semantic Commits
 This project follows [Conventional Commits](https://www.conventionalcommits.org/). This allows us to automate versioning and changelogs. Please use the following prefixes for your commits:
 

@@ -8,12 +8,6 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[*.sh]
+[*.{sh,bats}]
 indent_style = space
 indent_size = 2
-space_redirects = true
-
-[*.bats]
-indent_style = space
-indent_size = 2
-space_redirects = true

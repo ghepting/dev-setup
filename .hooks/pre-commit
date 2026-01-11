@@ -19,33 +19,19 @@ if git diff --cached --check | grep -q "trailing whitespace"; then
     exit 1
 fi
 
-# 2. Run shfmt if installed
-if command -v shfmt &> /dev/null; then
-    echo -e "${YELLOW}Running shfmt check...${NC}"
-    # Find staged shell files
-    staged_sh_files=(${(f)"$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(sh|bats)$' 2>/dev/null)"})
-    staged_sh_files=(${staged_sh_files:#}) # Remove empty elements
+# 2. Validate Zsh syntax
+echo -e "${YELLOW}Validating Zsh syntax...${NC}"
+# Find staged Zsh files (excluding .bats as they need the bats runner)
+staged_zsh_files=(${(f)"$(git diff --cached --name-only --diff-filter=ACM | grep '\.sh$' 2>/dev/null)"})
+staged_zsh_files=(${staged_zsh_files:#})
 
-    if [ ${#staged_sh_files[@]} -gt 0 ]; then
-        # Try to run shfmt, but ignore files it can't parse (like Zsh)
-        for f in "${staged_sh_files[@]}"; do
-            if ! shfmt -l -d "$f" &>/dev/null; then
-                # If shfmt fails to parse, it's likely Zsh or complex bash.
-                # Check if it's actually a formatting error or a parse error.
-                if shfmt -l -d "$f" 2>&1 | grep -q "not a valid"; then
-                     # This is a parse error, skip shfmt for this file
-                     continue
-                fi
-                # It's a real formatting error
-                echo -e "${RED}Error: Shell formatting issues detected in $f.${NC}"
-                shfmt -l -d "$f"
-                echo -e "${YELLOW}Run 'shfmt -w $f' to fix formatting, or use --no-verify.${NC}"
-                exit 1
-            fi
-        done
-    fi
-else
-    echo -e "${YELLOW}Tip: Install shfmt (brew install shfmt) for automatic formatting checks.${NC}"
+if [ ${#staged_zsh_files[@]} -gt 0 ]; then
+    for f in "${staged_zsh_files[@]}"; do
+        if ! zsh -n "$f"; then
+            echo -e "${RED}Error: Syntax error in $f.${NC}"
+            exit 1
+        fi
+    done
 fi
 
 echo -e "${GREEN}Pre-commit checks passed!${NC}"
