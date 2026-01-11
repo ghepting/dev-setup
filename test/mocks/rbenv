@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 case "$1" in
   init)
     echo "echo 'MOCKED: rbenv init'"

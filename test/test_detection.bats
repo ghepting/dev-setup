@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load "test_helper.bash"
+load "test_helper.sh"
 
 setup() {
   export TEST_HOME="$BATS_TEST_TMPDIR/home"

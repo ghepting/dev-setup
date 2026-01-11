@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 # This script builds and runs the Debian test container interactively.
 # It mounts the current directory as a volume so you can run scripts and see changes.

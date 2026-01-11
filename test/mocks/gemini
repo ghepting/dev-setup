@@ -1,2 +1,2 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 echo "gemini version 0.21.0-mock"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 echo "MOCKED: git $@"
 # Handle clone specifically to avoid errors if scripts check for directory existence
 if [[ "$1" == "clone" ]]; then

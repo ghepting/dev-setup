@@ -1,2 +1,2 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 echo "v20.0.0-mock"

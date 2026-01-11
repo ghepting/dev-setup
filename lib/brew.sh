@@ -4,7 +4,7 @@ install_homebrew() {
   if ! command -v brew &> /dev/null
   then
     echo -e "${WHITE}Installing Homebrew...${NC}"
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    /usr/bin/env zsh -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     RESTART_REQUIRED=true
 
     # Configure shell environment for the current session

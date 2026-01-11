@@ -8,7 +8,7 @@ install_claude_code_cli() {
     # check if claude is enabled in config file
     if is_enabled "claude_code_cli"
     then
-      curl -fsSL https://claude.ai/install.sh | bash
+      curl -fsSL https://claude.ai/install.sh | zsh
       # ensure claude is in PATH
       echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
 

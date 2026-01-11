@@ -84,7 +84,7 @@ setup() {
   # Mock sudo to handle apt-get (already in mocks/sudo)
   # install_pkg calls: dpkg-query -W ...
   # We need a mock for dpkg-query.
-  echo '#!/bin/bash' > "$MOCKS_DIR/dpkg-query"
+  echo '#!/usr/bin/env zsh' > "$MOCKS_DIR/dpkg-query"
   echo 'exit 1' >> "$MOCKS_DIR/dpkg-query"
   chmod +x "$MOCKS_DIR/dpkg-query"
 

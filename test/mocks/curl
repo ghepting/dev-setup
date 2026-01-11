@@ -1,3 +1,4 @@
+#!/usr/bin/env zsh
 # Handle known installation scripts by outputting shell commands
 if [[ "$*" == *"-fsSL https://claude.ai/install.sh"* ]]; then
   echo "echo 'MOCKED: Successfully installed claude'"

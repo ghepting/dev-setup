@@ -15,7 +15,7 @@ docker run --rm -it -v $(pwd):/home/tester/dev-setup dev-setup-debian
 ```
 
 ## 2. Unit Testing (Logic Only)
-Use `bats-core` to verify the logic of individual bash functions using mocks.
+Use `bats-core` to verify the logic of individual shell functions using mocks.
 
 ### Prerequisites
 Install `bats-core`:

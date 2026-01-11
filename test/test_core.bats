@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load "test_helper.bash"
+load "test_helper.sh"
 
 # We'll use one file for all core logic tests to ensure a clean state
 setup() {

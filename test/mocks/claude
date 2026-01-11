@@ -1,2 +1,2 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 echo "claude version 0.1.0-mock"
