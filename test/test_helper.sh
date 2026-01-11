@@ -32,8 +32,9 @@ setup_mocks() {
     shift
     echo "MOCKED: sudo $cmd $*" >&2
     case "$cmd" in
-      apt-get|pacman|dnf|update-alternatives)
-        "$cmd" "$@"
+      apt-get|pacman|dnf|update-alternatives|install|curl|chmod|tee)
+        # For these commands, we just echo that they were mocked
+        # Some might need actual execution or further mocking if output is required
         ;;
       *)
         # Already echoed above

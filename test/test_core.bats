@@ -120,12 +120,22 @@ setup() {
   echo "$output" | grep -q "Installing Docker"
 
   export PLATFORM="Debian"
-  export MOCKED_NOT_FOUND="docker"
-  # Mock whoami for usermod
-  whoami() { echo "tester"; }
-  export -f whoami
   run setup_docker
-  echo "$output" | grep -q "Installing docker.io via apt"
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q "Setting up Docker CE repository for Debian"
+  echo "$output" | grep -q "MOCKED: sudo curl -fsSL https://download.docker.com/linux/debian/gpg"
+  echo "$output" | grep -q "MOCKED: sudo tee /etc/apt/sources.list.d/docker.list"
+
+  export PLATFORM="Fedora"
+  run setup_docker
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q "Setting up Docker CE repository for Fedora"
+  echo "$output" | grep -q "MOCKED: sudo dnf config-manager --add-repo"
+
+  export PLATFORM="Arch"
+  run setup_docker
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q "MOCKED: sudo pacman -S --noconfirm docker"
 }
 
 @test "1Password: handles platform specific paths and opt-in" {

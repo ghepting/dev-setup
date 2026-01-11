@@ -10,14 +10,39 @@ setup_docker() {
     elif is_linux; then
       echo -e "${YELLOW}Installing Docker...${NC}"
       if is_debian; then
-        install_pkg "docker.io"
-        install_pkg "docker-compose"
+        echo -e "${YELLOW}Setting up Docker CE repository for Debian...${NC}"
+        sudo apt-get update
+        sudo apt-get install -y ca-certificates curl
+        sudo install -m 0755 -d /etc/apt/keyrings
+        sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+        sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+        local codename
+        codename=$(grep VERSION_CODENAME /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '"')
+        codename=${codename:-$(lsb_release -cs 2>/dev/null || echo "stable")}
+
+        echo "deb [arch=$(dpkg --print-architecture 2>/dev/null || echo "amd64") signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian $codename stable" | \
+          sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+        sudo apt-get update
+        install_pkg "docker-ce"
+        install_pkg "docker-ce-cli"
+        install_pkg "containerd.io"
+        install_pkg "docker-buildx-plugin"
+        install_pkg "docker-compose-plugin"
       elif is_arch; then
         install_pkg "docker"
         install_pkg "docker-compose"
       elif is_fedora; then
-        install_pkg "docker"
-        # docker-compose is usually a separate package or part of docker-ce
+        echo -e "${YELLOW}Setting up Docker CE repository for Fedora...${NC}"
+        sudo dnf -y install dnf-plugins-core
+        sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+
+        install_pkg "docker-ce"
+        install_pkg "docker-ce-cli"
+        install_pkg "containerd.io"
+        install_pkg "docker-buildx-plugin"
+        install_pkg "docker-compose-plugin"
       fi
       sudo usermod -aG docker "$(whoami)"
       echo -e "${YELLOW}Note: You may need to logout and login for docker group changes to take effect.${NC}"

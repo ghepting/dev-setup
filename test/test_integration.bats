@@ -223,3 +223,19 @@ setup() {
   grep "^python=true" "$CONFIG_FILE"
   grep "^dotfiles=false" "$CONFIG_FILE"
 }
+@test "Integration: Prompt Defaults" {
+  export PLATFORM="macOS"
+  export MOCK_UNAME="Darwin"
+
+  # Ensure config exists
+  echo "python=false" > "$CONFIG_FILE"
+
+  cd "$PROJECT_DIR"
+  patch_smoke_tests
+
+  # Provide empty input (just Enter) for the "Modify configuration?" prompt
+  run zsh -c "export PATH=\"$PATH\"; export MOCK_UNAME=\"$MOCK_UNAME\"; export PLATFORM=\"$PLATFORM\"; printf '\n' | ./bin/setup"
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Using current configuration."* ]]
+}

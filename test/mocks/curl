@@ -6,7 +6,7 @@ if [[ "$*" == *"-fsSL https://claude.ai/install.sh"* ]]; then
 fi
 
 if [[ "$*" == *"raw.githubusercontent.com/nvm-sh/nvm"* ]]; then
-  # Simulate nvm installer by creating the structure lib/node.sh expects
+  # Simulate nvm installer by creating the structure lib/modules/node.sh expects
   cat <<'EOF'
 mkdir -p "$HOME/.nvm"
 cat <<'FUNCTION' > "$HOME/.nvm/nvm.sh"
