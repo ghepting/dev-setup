@@ -16,6 +16,31 @@ RESTART_REQUIRED=false
 CONFIG_DIR="${HOME}/.config"
 CONFIG_FILE="${CONFIG_DIR}/dev-setup.conf"
 
+# Load dotfiles config from file if it exists
+if [ -f "$CONFIG_FILE" ]; then
+  # We grep instead of sourcing to avoid executing arbitrary code
+  # but this means we must manually expand variables like $HOME
+  local cfg_dir cfg_repo
+  cfg_dir=$(grep "^dotfiles_dir=" "$CONFIG_FILE" | cut -d= -f2 | tr -d '"')
+  cfg_repo=$(grep "^dotfiles_repo=" "$CONFIG_FILE" | cut -d= -f2 | tr -d '"')
+
+  if [ -n "$cfg_dir" ]; then
+    DOTFILES_DIR="${cfg_dir//\$\{HOME\}/$HOME}"
+    DOTFILES_DIR="${DOTFILES_DIR//\$HOME/$HOME}"
+    DOTFILES_DIR="${DOTFILES_DIR/#\~/$HOME}"
+  fi
+
+  if [ -n "$cfg_repo" ]; then
+    DOTFILES_REPO="${cfg_repo//\$\{HOME\}/$HOME}"
+    DOTFILES_REPO="${DOTFILES_REPO//\$HOME/$HOME}"
+    DOTFILES_REPO="${DOTFILES_REPO/#\~/$HOME}"
+  fi
+fi
+
+# Fallback to defaults
+DOTFILES_DIR=${DOTFILES_DIR:-"${HOME}/dotfiles"}
+DOTFILES_REPO=${DOTFILES_REPO:-"git@github.com:ghepting/dotfiles.git"}
+
 # Platform Detection
 _get_linux_distro() {
   if [[ -f /etc/os-release ]]; then

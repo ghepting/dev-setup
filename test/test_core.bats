@@ -98,16 +98,34 @@ setup() {
 @test "Dotfiles: correctly chooses paths" {
   load_lib "lib/modules/dotfiles.sh"
   export PLATFORM="macOS"
-  # Mock the Google Drive source
-  mkdir -p "$TEST_HOME/Google Drive/My Drive/dotfiles/antigravity"
-  touch "$TEST_HOME/Google Drive/My Drive/dotfiles/antigravity/settings.json"
+  export DOTFILES_DIR="$TEST_HOME/dotfiles"
+
+  # Mock git clone/pull
+  git() { return 0; }
+  export -f git
+
+  # Mock read to always say yes for prompts
+  read() { REPLY="y"; return 0; }
+  export -f read
+
+  # Mock the repository source
+  mkdir -p "$DOTFILES_DIR/.antigravity"
+  touch "$DOTFILES_DIR/.antigravity/settings.json"
+  mkdir -p "$DOTFILES_DIR/.ssh"
+  touch "$DOTFILES_DIR/.ssh/id_rsa"
+  touch "$DOTFILES_DIR/.zshrc"
+
+  run setup_dotfiles
+  [ -L "$TEST_HOME/.zshrc" ]
+  [ -L "$TEST_HOME/.ssh" ]
+  [ -L "$TEST_HOME/.antigravity" ]
 
   run symlink_antigravity_config
-  [ -L "$TEST_HOME/Library/Application Support/Antigravity/User/settings.json" ]
+  [ -L "$TEST_HOME/Library/Application Support/Antigravity/User" ]
 
   export PLATFORM="Debian"
   run symlink_antigravity_config
-  [ -L "$TEST_HOME/.config/Antigravity/User/settings.json" ]
+  [ -L "$TEST_HOME/.config/Antigravity/User" ]
 }
 
 @test "Docker: installs correctly when enabled" {

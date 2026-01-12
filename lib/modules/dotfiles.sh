@@ -1,43 +1,66 @@
 #!/usr/bin/env zsh
 
-symlink_google_drive_dotfiles() {
-  # for each of the following files, create a symlink to the Google Drive version
-  # if the file already exists, prompt the user to replace it
-  # google drive files are in ~/Google Drive/My Drive/dotfiles
-  # google drive files start with _ and local files start with .
+setup_dotfiles() {
+  echo -e "${WHITE}Setting up dotfiles from ${DOTFILES_REPO}...${NC}"
 
-  local files=(
-    "_zshrc"
-    "_aliases"
-    "_gitconfig"
-    "_tmux.conf.local"
-    "_vimrc.local"
-    "_vimrc.bundles.local"
+  if [ ! -d "$DOTFILES_DIR" ]; then
+    echo -e "${CYAN}Cloning dotfiles repository...${NC}"
+    git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
+  else
+    echo -e "${CYAN}Updating dotfiles repository...${NC}"
+    git -C "$DOTFILES_DIR" pull
+  fi
+
+  # targets to symlink to $HOME
+  local targets=(
+    ".zshrc"
+    ".aliases"
+    ".gitconfig"
+    ".tmux.conf"
+    ".tmux.conf.local"
+    ".vimrc.local"
+    ".vimrc.bundles.local"
+    ".ssh"
+    ".antigravity"
   )
 
-  for file in "${files[@]}"; do
-    dotfile="${file/_/.}"
+  for target in "${targets[@]}"; do
+    local source_path="${DOTFILES_DIR}/${target}"
+    local dest_path="$HOME/${target}"
 
-    # check if file is already symlinked to Google Drive dotfile, otherwise prompt to replace
-    if [ -L "$HOME/${dotfile}" ]; then
-      if [[ "$(readlink "$HOME/${dotfile}")" == "$HOME/Google Drive/My Drive/dotfiles/${file}" ]]; then
-        echo -e "${BLUE}Using Google Drive dotfile $HOME/Google Drive/My Drive/dotfiles/${file}${NC}"
+    if [ ! -e "$source_path" ]; then
+      echo -e "${GRAY}Target ${target} not found in repository, skipping.${NC}"
+      continue
+    fi
+
+    # check if target is already symlinked correctly
+    if [ -L "$dest_path" ]; then
+      if [[ "$(readlink "$dest_path")" == "$source_path" ]]; then
+        echo -e "${BLUE}Using repository target ${target}${NC}"
         continue
       fi
     fi
 
-    if [ -f "$HOME/${dotfile}" ]; then
-      echo -n "File ${HOME}/${dotfile} already exists. Replace it? (y/n) "
+    if [ -e "$dest_path" ]; then
+      echo -n "Target ${dest_path} already exists. Replace it? (y/n) "
       read -k 1 REPLY
       echo
       if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo -e "${GRAY}Skipping ${HOME}/${dotfile}${NC}"
+        echo -e "${GRAY}Skipping ${dest_path}${NC}"
         continue
+      fi
+
+      if [ -d "$dest_path" ] && [ ! -L "$dest_path" ]; then
+        local backup="$dest_path.backup.$(date +%Y%m%d_%H%M%S)"
+        mv "$dest_path" "$backup"
+        echo -e "${GRAY}Backed up existing directory to $(basename "$backup")${NC}"
+      else
+        rm -rf "$dest_path"
       fi
     fi
 
-    ln -sf "$HOME/Google Drive/My Drive/dotfiles/${file}" "$HOME/${dotfile}"
-    echo -e "${GREEN}${HOME}/${dotfile} symlinked to Google Drive file ${file}${NC}"
+    ln -sf "$source_path" "$dest_path"
+    echo -e "${GREEN}${dest_path} symlinked to repository ${target}${NC}"
   done
 }
 
@@ -52,45 +75,37 @@ symlink_antigravity_config() {
     return
   fi
 
-  local files=(
-    "settings.json"
-    "mcp.json"
-  )
+  local config_source="${DOTFILES_DIR}/.antigravity"
 
-  for file in "${files[@]}"; do
-    local config_source="$HOME/Google Drive/My Drive/dotfiles/antigravity/${file}"
-    local config_dest="${config_dest_base}/${file}"
+  if [ ! -d "$config_source" ]; then
+    echo -e "${GRAY}Antigravity directory not found in dotfiles repository, skipping symlink.${NC}"
+    return
+  fi
 
-    if [ ! -f "$config_source" ]; then
-      echo -e "${GRAY}Antigravity ${file} not found in Google Drive, skipping symlink.${NC}"
-      continue
+  # ensure the destination parent directory exists
+  mkdir -p "$(dirname "$config_dest_base")"
+
+  if [ -L "$config_dest_base" ]; then
+    if [[ "$(readlink "$config_dest_base")" == "$config_source" ]]; then
+      echo -e "${BLUE}Using repository for Antigravity config directory${NC}"
+      return
+    fi
+  fi
+
+  if [ -e "$config_dest_base" ]; then
+    echo -n "Antigravity config directory already exists at $config_dest_base. Replace with repository version? (y/n) "
+    read -k 1 REPLY
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo -e "${GRAY}Skipping Antigravity config directory symlink${NC}"
+      return
     fi
 
-    # ensure the destination directory exists
-    mkdir -p "$(dirname "$config_dest")"
+    local backup="$config_dest_base.backup.$(date +%Y%m%d_%H%M%S)"
+    mv "$config_dest_base" "$backup"
+    echo -e "${GRAY}Backed up existing config directory to $(basename "$backup")${NC}"
+  fi
 
-    if [ -L "$config_dest" ]; then
-      if [[ "$(readlink "$config_dest")" == "$config_source" ]]; then
-        echo -e "${BLUE}Using Google Drive dotfile $config_source${NC}"
-        continue
-      fi
-    fi
-
-    if [ -e "$config_dest" ]; then
-      echo -n "Antigravity ${file} already exists at $config_dest. Replace with Google Drive version? (y/n) "
-      read -k 1 REPLY
-      echo
-      if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo -e "${GRAY}Skipping Antigravity ${file} symlink${NC}"
-        continue
-      fi
-
-      local backup="$config_dest.backup.$(date +%Y%m%d_%H%M%S)"
-      mv "$config_dest" "$backup"
-      echo -e "${GRAY}Backed up existing ${file} to $(basename "$backup")${NC}"
-    fi
-
-    ln -sf "$config_source" "$config_dest"
-    echo -e "${GREEN}Antigravity ${file} symlinked to Google Drive${NC}"
-  done
+  ln -sf "$config_source" "$config_dest_base"
+  echo -e "${GREEN}Antigravity config directory symlinked to repository version${NC}"
 }

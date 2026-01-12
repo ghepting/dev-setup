@@ -7,7 +7,7 @@ configure_editor() {
 
   # configure default EDITOR in ~/.zshrc
   if ! grep -q "export EDITOR" "$ZSHRC_FILE"; then
-    echo "export EDITOR=\"$preferred_editor\"" >> "$ZSHRC_FILE"
+    echo "export EDITOR=\"$preferred_editor\"" >>"$ZSHRC_FILE"
     echo -e "${GREEN}Configured $preferred_editor as EDITOR in $ZSHRC_FILE${NC}"
   fi
 
@@ -19,9 +19,9 @@ configure_editor() {
     fi
 
     # verify duti is installed
-    ANTIGRAVITY_BUNDLE_ID=$(mdls -name kMDItemCFBundleIdentifier -r /Applications/Antigravity.app 2> /dev/null || echo "com.google.Antigravity")
+    ANTIGRAVITY_BUNDLE_ID=$(mdls -name kMDItemCFBundleIdentifier -r /Applications/Antigravity.app 2>/dev/null || echo "com.google.Antigravity")
 
-    if ! command -v duti &> /dev/null; then
+    if ! command -v duti &>/dev/null; then
       brew install duti
       echo -e "${GREEN}Installed duti${NC}"
       RESTART_REQUIRED=true
@@ -140,17 +140,17 @@ configure_editor() {
 }
 
 install_antigravity_extensions() {
-  local extensions_file="$HOME/Google Drive/My Drive/dotfiles/antigravity/extensions.txt"
+  local extensions_file="${DOTFILES_DIR}/.antigravity/extensions.txt"
 
   if [ ! -f "$extensions_file" ]; then
-    echo -e "${GRAY}Antigravity extensions list not found in Google Drive, skipping installation.${NC}"
+    echo -e "${GRAY}Antigravity extensions list not found in dotfiles repository, skipping installation.${NC}"
     return
   fi
 
   echo -e "${WHITE}Installing Antigravity extensions...${NC}"
 
   local installed_extensions
-  installed_extensions=$(agy --list-extensions 2> /dev/null)
+  installed_extensions=$(agy --list-extensions 2>/dev/null)
 
   while read -r extension; do
     if [ -z "$extension" ]; then
@@ -161,27 +161,27 @@ install_antigravity_extensions() {
       echo -e "${BLUE}Using $extension${NC}"
     else
       echo -e "${CYAN}Installing $extension...${NC}"
-      agy --install-extension "$extension" &> /dev/null
+      agy --install-extension "$extension" &>/dev/null
       echo -e "${GREEN}Installed $extension${NC}"
     fi
-  done < "$extensions_file"
+  done <"$extensions_file"
 }
 
 update_antigravity_extensions_list() {
-  local extensions_file="$HOME/Google Drive/My Drive/dotfiles/antigravity/extensions.txt"
+  local extensions_file="${DOTFILES_DIR}/.antigravity/extensions.txt"
 
-  echo -e "${WHITE}Updating Antigravity extensions list in Google Drive...${NC}"
+  echo -e "${WHITE}Updating Antigravity extensions list in dotfiles repository...${NC}"
 
   # Ensure the directory exists
   mkdir -p "$(dirname "$extensions_file")"
 
   # Redirect stderr to /dev/null because agy is currently emitting V8 fatal errors
   # but still successfully printing the list to stdout.
-  agy --list-extensions > "$extensions_file" 2> /dev/null
+  agy --list-extensions >"$extensions_file" 2>/dev/null
 
   # Verify if updates were actually written (checking file size)
   if [[ -s "$extensions_file" ]]; then
-    echo -e "${GREEN}Extensions list updated: $(wc -l < "$extensions_file" | xargs) extensions saved.${NC}"
+    echo -e "${GREEN}Extensions list updated: $(wc -l <"$extensions_file" | xargs) extensions saved.${NC}"
   else
     echo -e "${RED}Failed to update extensions list (file is empty).${NC}"
   fi

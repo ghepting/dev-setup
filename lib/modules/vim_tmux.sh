@@ -71,8 +71,8 @@ setup_vim_tmux_config() {
       continue
     fi
 
-    # For .local files, do not overwrite if they already exist
-    if [[ "$SOURCE_FILE_BASE" == *.local && -f "$DEST_FILE" ]]
+    # For .local files, do not overwrite if they already exist as real files
+    if [[ "$SOURCE_FILE_BASE" == *.local && -f "$DEST_FILE" && ! -L "$DEST_FILE" ]]
     then
       continue
     fi
@@ -85,7 +85,13 @@ setup_vim_tmux_config() {
        # It is a link, but is it pointing to the right place?
        CURRENT_TARGET=$(readlink "$DEST_FILE")
        if [[ "$CURRENT_TARGET" != "$SOURCE_FILE" ]]; then
-          NEEDS_LINK=true
+          # Check if it's pointing to our dotfiles repository
+          if [[ -n "$DOTFILES_DIR" && "$CURRENT_TARGET" == "$DOTFILES_DIR"* ]]; then
+            echo -e "${BLUE}Skipping $SOURCE_FILE_BASE as it is already symlinked to dotfiles repo${NC}"
+            NEEDS_LINK=false
+          else
+            NEEDS_LINK=true
+          fi
        fi
     fi
 

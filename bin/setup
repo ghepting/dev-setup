@@ -75,6 +75,24 @@ prompt_config() {
     case "$REPLY" in
       [Yy]*)
         set_config_value "$module" "true"
+        if [[ "$module" == "dotfiles" ]]; then
+          local current_repo current_dir
+          current_repo=$(grep "^dotfiles_repo=" "$CONFIG_FILE" | cut -d= -f2 | tr -d '"')
+          current_repo=${current_repo:-$DOTFILES_REPO}
+          echo -n -e "    Repository URL (default: $current_repo): "
+          read -r REPO_REPLY
+          REPO_REPLY=${REPO_REPLY:-$current_repo}
+          set_config_value "dotfiles_repo" "$REPO_REPLY"
+
+          current_dir=$(grep "^dotfiles_dir=" "$CONFIG_FILE" | cut -d= -f2 | tr -d '"')
+          current_dir=${current_dir:-$DOTFILES_DIR}
+          echo -n -e "    Directory path (default: $current_dir): "
+          read -r DIR_REPLY
+          DIR_REPLY=${DIR_REPLY:-$current_dir}
+          # Resolve ~ if present
+          DIR_REPLY="${DIR_REPLY/#\~/$HOME}"
+          set_config_value "dotfiles_dir" "$DIR_REPLY"
+        fi
         ;;
       [Nn]*)
         set_config_value "$module" "false"
@@ -101,7 +119,7 @@ if [[ "${(%):-%N}" == "$0" ]]; then
 
   # configuration toggles
   if is_enabled "dotfiles"; then
-    symlink_google_drive_dotfiles
+    setup_dotfiles
     symlink_antigravity_config
   fi
 

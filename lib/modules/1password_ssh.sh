@@ -10,13 +10,8 @@ setup_1password_ssh() {
   fi
 
   # configure SSH Config (Idempotent)
-  # Set socket path based on OS
-  local sock_path
-  if is_macos; then
-    sock_path="~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-  else
-    sock_path="~/.1password/agent.sock"
-  fi
+  # Use the system-agnostic socket path
+  local sock_path="~/.1password/agent.sock"
 
   # create ssh config file if it doesn't already exist
   if [ ! -f "$SSH_CONFIG_FILE" ]; then
@@ -25,9 +20,15 @@ setup_1password_ssh() {
   fi
 
   # add 1password ssh agent to ssh config if not already present
-  if ! grep -q "IdentityAgent \"$sock_path\"" "$SSH_CONFIG_FILE"; then
-    echo "Host *" >> "$SSH_CONFIG_FILE"
-    echo "  IdentityAgent \"$sock_path\"" >> "$SSH_CONFIG_FILE"
+  # we check for the path both with and without quotes, and handles ~ or full path
+  local sock_regex="IdentityAgent[[:space:]]+\"?($sock_path|${sock_path/#\~/$HOME})\"?"
+  if ! grep -qE "$sock_regex" "$SSH_CONFIG_FILE"; then
+    # Only add Host * if it's not already at the end of the file or if the file is empty
+    if [ ! -s "$SSH_CONFIG_FILE" ] || ! tail -n 1 "$SSH_CONFIG_FILE" | grep -q "Host \*"; then
+      echo "" >>"$SSH_CONFIG_FILE"
+      echo "Host *" >>"$SSH_CONFIG_FILE"
+    fi
+    echo "  IdentityAgent \"$sock_path\"" >>"$SSH_CONFIG_FILE"
     echo -e "${GREEN}Added 1Password SSH agent to $SSH_CONFIG_FILE${NC}"
   else
     echo -e "${BLUE}Using 1Password SSH agent${NC}"
@@ -38,9 +39,9 @@ setup_1password_ssh() {
   local export_cmd="export SSH_AUTH_SOCK=\"$sock_path\""
 
   if ! grep -qF "export SSH_AUTH_SOCK" "$ZSHRC_FILE"; then
-    echo '' >> "$ZSHRC_FILE"
-    echo '# 1password' >> "$ZSHRC_FILE"
-    echo "$export_cmd" >> "$ZSHRC_FILE"
+    echo '' >>"$ZSHRC_FILE"
+    echo '# 1password' >>"$ZSHRC_FILE"
+    echo "$export_cmd" >>"$ZSHRC_FILE"
     echo -e "${GREEN}Added SSH_AUTH_SOCK export to $ZSHRC_FILE${NC}"
     RESTART_REQUIRED=true
   fi
@@ -51,8 +52,8 @@ setup_1password_ssh() {
   if [ ! -f "$agent_config" ]; then
     mkdir -p "$(dirname "$agent_config")"
     touch "$agent_config"
-    echo "[[ssh-keys]]" >> "$agent_config"
-    echo "vault = \"Development\"" >> "$agent_config"
+    echo "[[ssh-keys]]" >>"$agent_config"
+    echo "vault = \"Development\"" >>"$agent_config"
     echo -e "${GREEN}Created $agent_config${NC}"
   elif ! grep -q "vault = \"Development\"" "$agent_config"; then
     # replace default vault value with "Development"
