@@ -40,7 +40,7 @@ setup() {
     sed -i.bak '/^[[:space:]]*read/d' "$PROJECT_DIR/bin/setup"
 
     # Ensure any logic that depends on REPLY gets a default
-    sed -i.bak 's/read -r REPLY/REPLY="n"/g' "$PROJECT_DIR/bin/setup"
+    sed -i.bak 's/read -r REPLY/REPLY="y"/g' "$PROJECT_DIR/bin/setup"
   }
 
   patch_interactive_only() {
@@ -191,7 +191,7 @@ setup() {
   cd "$PROJECT_DIR"
 
   # Simulate interaction:
-  # 1. Modify configuration? [y/N]: y
+  # 1. Proceed with current configuration? [Y/n]: n
   # 2. Enable google_drive? ... (default: n): [Enter]
   # 3. Enable dotfiles? ... (default: y): n
   # 4. Enable vim_tmux? ... (default: n): [Enter]
@@ -209,7 +209,7 @@ setup() {
   # Run with zsh explicitly to ensure prompt-reading behavior matches reality
   export MOCK_UNAME="Darwin"
   export PLATFORM="macOS"
-  run zsh -c "export PATH=\"$PATH\"; export MOCK_UNAME=\"$MOCK_UNAME\"; export PLATFORM=\"$PLATFORM\"; printf 'y\n\nn\n\n\n\n\n\n\ny\n\n\n\n\n\n' | ./bin/setup"
+  run zsh -c "export PATH=\"$PATH\"; export MOCK_UNAME=\"$MOCK_UNAME\"; export PLATFORM=\"$PLATFORM\"; printf 'n\n\nn\n\n\n\n\n\n\ny\n\n\n\n\n\n' | ./bin/setup"
   if [ "$status" -ne 0 ]; then
     echo "Interactive setup failed with output:"
     echo "$output"
@@ -230,7 +230,7 @@ setup() {
   cd "$PROJECT_DIR"
   patch_smoke_tests
 
-  # Provide empty input (just Enter) for the "Modify configuration?" prompt
+  # Provide empty input (just Enter) for the "Proceed with current configuration?" prompt
   run zsh -c "export PATH=\"$PATH\"; export MOCK_UNAME=\"$MOCK_UNAME\"; export PLATFORM=\"$PLATFORM\"; printf '\n' | ./bin/setup"
 
   [ "$status" -eq 0 ]

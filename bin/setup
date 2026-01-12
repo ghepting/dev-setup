@@ -56,10 +56,10 @@ prompt_config() {
     printf "  %-20s : %b\n" "$module" "$module_status"
   done
 
-  echo -n -e "\n${YELLOW}Modify configuration? [y/N]: ${NC}"
+  echo -n -e "\n${YELLOW}Proceed with current configuration? [Y/n]: ${NC}"
   read -r REPLY
-  REPLY=${REPLY:-n}
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  REPLY=${REPLY:-y}
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo -e "${GREEN}Using current configuration.${NC}"
     echo -e "${YELLOW}----------------------------${NC}\n"
     return
