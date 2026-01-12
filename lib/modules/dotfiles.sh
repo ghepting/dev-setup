@@ -62,6 +62,14 @@ setup_dotfiles() {
     ln -sf "$source_path" "$dest_path"
     echo -e "${GREEN}${dest_path} symlinked to repository ${target}${NC}"
   done
+
+  # Special handling for git signing wrapper
+  local wrapper_source="${DOTFILES_DIR}/.git-ssh-sign-wrapper"
+  local wrapper_dest="$HOME/.local/bin/git-ssh-sign-wrapper"
+
+  mkdir -p "$HOME/.local/bin"
+  ln -sf "$wrapper_source" "$wrapper_dest"
+  echo -e "${GREEN}${wrapper_dest} symlinked to repository .git-ssh-sign-wrapper${NC}"
 }
 
 symlink_antigravity_config() {

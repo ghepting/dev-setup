@@ -12,6 +12,22 @@ setup_1password_ssh() {
   # configure SSH Config (Idempotent)
   # Use the system-agnostic socket path
   local sock_path="~/.1password/agent.sock"
+  local expanded_sock_path="${sock_path/#\~/$HOME}"
+  local op_sock_macos="$HOME/Library/Group Containers/2BU8B4S4C3.com.1password/t/agent.sock"
+
+  # Ensure the directory for the symlink exists
+  mkdir -p "$HOME/.1password"
+
+  # Create symlink if it doesn't exist (specifically for macOS)
+  if is_macos && [ ! -e "$expanded_sock_path" ]; then
+    if [ -S "$op_sock_macos" ]; then
+      ln -s "$op_sock_macos" "$expanded_sock_path"
+      echo -e "${GREEN}Created symlink $expanded_sock_path -> $op_sock_macos${NC}"
+    else
+      echo -e "${YELLOW}Warning: 1Password SSH agent socket not found at $op_sock_macos${NC}"
+      echo -e "${GRAY}Symlink $expanded_sock_path not created.${NC}"
+    fi
+  fi
 
   # create ssh config file if it doesn't already exist
   if [ ! -f "$SSH_CONFIG_FILE" ]; then
