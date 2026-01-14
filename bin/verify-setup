@@ -1,0 +1,61 @@
+#!/usr/bin/env zsh
+
+source "./lib/core/vars.sh"
+source "./lib/core/utils.sh"
+source "./lib/core/zsh.sh"
+
+echo -e "${WHITE}Verifying setup for ${PLATFORM}...${NC}"
+
+check_tool() {
+  local tool=$1
+  if command -v "$tool" &> /dev/null; then
+    echo -e "${GREEN}✓ $tool is installed: $(dirname $(command -v $tool))${NC}"
+  else
+    echo -e "${RED}✗ $tool is missing${NC}"
+  fi
+}
+
+check_file() {
+  local file=$1
+  if [ -f "$file" ]; then
+    echo -e "${GREEN}✓ $file exists${NC}"
+  else
+    echo -e "${RED}✗ $file is missing${NC}"
+  fi
+}
+
+echo -e "\n${WHITE}Checking configuration files...${NC}"
+check_file "$CONFIG_FILE"
+check_file "$DEV_ZSH_CONFIG"
+check_file "$HOME/.zshrc"
+
+echo -e "\n${WHITE}Checking core packages...${NC}"
+check_tool "git"
+check_tool "curl"
+check_tool "vim"
+check_tool "tmux"
+
+echo -e "\n${WHITE}Checking environment...${NC}"
+if [ -f "$DEV_ZSH_CONFIG" ]; then
+  source "$DEV_ZSH_CONFIG"
+fi
+
+echo -e "\n${WHITE}Checking language runtimes...${NC}"
+check_tool "rbenv"
+if command -v rbenv &> /dev/null; then
+  echo -e "  rbenv version: $(rbenv --version)"
+fi
+
+check_tool "node"
+if command -v node &> /dev/null; then
+  echo -e "  Node version: $(node -v)"
+fi
+
+echo -e "\n${WHITE}Checking NVM...${NC}"
+if [ -n "$NVM_DIR" ] && [ -s "$NVM_DIR/nvm.sh" ]; then
+  echo -e "${GREEN}✓ NVM is configured ($NVM_DIR)${NC}"
+else
+  echo -e "${RED}✗ NVM is not configured or loaded${NC}"
+fi
+
+echo -e "\n${WHITE}Verification complete.${NC}"

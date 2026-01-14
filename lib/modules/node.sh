@@ -23,15 +23,14 @@ install_nvm_and_node() {
     fi
   fi
 
-  # add nvm to ~/.zshrc
-  if ! grep -q "NVM_DIR" "$ZSHRC_FILE"; then
-    echo '' >> "$ZSHRC_FILE"
-    echo '# nvm' >> "$ZSHRC_FILE"
-    echo 'export NVM_DIR="$HOME/.nvm"' >> "$ZSHRC_FILE"
-    echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> "$ZSHRC_FILE"
-    echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> "$ZSHRC_FILE"
+  # add nvm to ~/.zshrc.dev
+  local nvm_config=""
+  nvm_config+='export NVM_DIR="$HOME/.nvm"'$'\n'
+  nvm_config+='[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'$'\n'
+  nvm_config+='[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"'
+
+  if add_to_zsh_config "$nvm_config" "nvm"; then
     echo -e "${GREEN}Successfully added nvm to path${NC}"
-    RESTART_REQUIRED=true
   fi
 
   # install node & npm

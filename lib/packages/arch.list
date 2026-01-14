@@ -1,0 +1,6 @@
+# Arch specific packages
+vim
+the_silver_searcher
+universal-ctags
+github-cli
+base-devel

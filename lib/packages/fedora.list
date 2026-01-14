@@ -1,0 +1,14 @@
+# Fedora specific packages
+vim-enhanced
+the_silver_searcher
+ctags
+gh
+# Build dependencies for rbenv/ruby-build if needed, though rbenv might handle it
+gcc
+g++
+make
+ctags
+openssl-devel
+zlib-devel
+readline-devel
+libyaml-devel

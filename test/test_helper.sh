@@ -140,11 +140,24 @@ setup_mocks() {
 
   # Better Mock read: don't break loops
   read() {
-    # If we appear to be reading from a file (usually -r and a variable)
-    if [[ "$*" == *"-r"* ]]; then
-      builtin read "$@"
-      return $?
+    # If we appear to be reading from a file (redirected input) provided via loop
+    # We can detect this if stdin is not a terminal, OR we can just check if we are in a loop context?
+    # Actually, simplistic check: if arguments contain -r, usually it's `read -r var`.
+    # But bin/setup uses `read -r REPLY` for prompts.
+    # We should default to "y" or empty (Enter) for prompts.
+
+    # If standard input is a terminal, we are likely in a prompt.
+    if [ -t 0 ]; then
+       REPLY="y"
+       return 0
     fi
+
+    # If not a terminal, we might be reading from a file (while read loop).
+    # Try builtin read. If it blocks, we are screwed.
+    # BATS connects stdin to /dev/null IIRC?
+    # Let's try to be safer:
+    builtin read "$@"
+    return $?
     # If it's an interactive prompt mock
     return 0
   }
@@ -251,6 +264,7 @@ load_lib() {
   if ! typeset -f is_macos > /dev/null; then
     source "$repo_root/lib/core/utils.sh"
   fi
+  source "$repo_root/lib/core/zsh.sh"
 
   if [[ "$lib_file" != "lib/core/vars.sh" && "$lib_file" != "lib/core/utils.sh" ]]; then
     source "$repo_root/$lib_file"

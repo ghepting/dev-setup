@@ -25,24 +25,16 @@ install_homebrew_path() {
 
   # ensure brew bins are added to $PATH
   BREW_PREFIX_CMD='PATH="$(brew --prefix)/bin:$PATH" && export PATH'
-  if ! grep -qF "$BREW_PREFIX_CMD" "$ZSHRC_FILE"; then
-    echo '' >>"$ZSHRC_FILE"
-    echo '# homebrew' >>"$ZSHRC_FILE"
-    echo "$BREW_PREFIX_CMD" >>"$ZSHRC_FILE"
-    echo -e "${GREEN}Homebrew PATH line added to $ZSHRC_FILE.${NC}"
-    RESTART_REQUIRED=true
+  if add_to_zsh_config "$BREW_PREFIX_CMD" "homebrew"; then
+    echo -e "${GREEN}Homebrew PATH line added to config.${NC}"
   fi
 }
 
 install_ghostty_path() {
-  # add ghostty path to ~/.zshrc
+  # add ghostty path to zsh config
   GHOSTTY_PATH_CMD='export PATH=$PATH:/Applications/Ghostty.app/Contents/MacOS'
-  if ! grep -qF "$GHOSTTY_PATH_CMD" "$ZSHRC_FILE"; then
-    echo '' >>"$ZSHRC_FILE"
-    echo '# ghostty' >>"$ZSHRC_FILE"
-    echo "$GHOSTTY_PATH_CMD" >>"$ZSHRC_FILE"
-    echo -e "${GREEN}Ghostty PATH line added to $ZSHRC_FILE.${NC}"
-    RESTART_REQUIRED=true
+  if add_to_zsh_config "$GHOSTTY_PATH_CMD" "ghostty"; then
+    echo -e "${GREEN}Ghostty PATH line added to config.${NC}"
   fi
 }
 

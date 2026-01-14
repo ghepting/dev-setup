@@ -15,6 +15,7 @@ ZSHRC_FILE="$HOME/.zshrc"
 RESTART_REQUIRED=false
 CONFIG_DIR="${HOME}/.config"
 CONFIG_FILE="${CONFIG_DIR}/dev-setup.conf"
+DEV_ZSH_CONFIG="${HOME}/.zshrc.dev"
 
 # Load dotfiles config from file if it exists
 if [ -f "$CONFIG_FILE" ]; then

@@ -1,0 +1,8 @@
+# Common packages (names match across most distros or are aliases)
+git
+curl
+vim
+tmux
+direnv
+gh
+the_silver_searcher

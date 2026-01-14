@@ -41,10 +41,23 @@ install_pkg() {
       sudo pacman -S --noconfirm "$package"
     fi
   elif is_fedora; then
-    if ! rpm -q "$package" &> /dev/null; then
+    if ! rpm -q --whatprovides "$package" &> /dev/null; then
       echo -e "${WHITE}Installing $package via dnf...${NC}"
       sudo dnf install -y "$package"
     fi
+  fi
+}
+
+install_packages_from_file() {
+  local list_file=$1
+  if [ -f "$list_file" ]; then
+    echo -e "${WHITE}Installing packages from $list_file...${NC}"
+    while IFS= read -r package; do
+      # Skip comments and empty lines
+      [[ "$package" =~ ^#.*$ ]] && continue
+      [[ -z "$package" ]] && continue
+      install_pkg "$package"
+    done < "$list_file"
   fi
 }
 

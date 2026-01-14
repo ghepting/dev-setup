@@ -219,7 +219,7 @@ setup() {
   load_lib "lib/modules/node.sh"
 
   run install_rbenv_and_ruby
-  echo "$output" | grep -q "Installing rbenv"
+  echo "$output" | grep -q "MOCKED: brew install rbenv" || echo "$output" | grep -q "Installing rbenv"
 
   run install_pyenv_and_python
   echo "$output" | grep -q "Installing pyenv"

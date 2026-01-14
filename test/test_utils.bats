@@ -94,3 +94,74 @@ setup() {
 
   rm "$MOCKS_DIR/dpkg-query"
 }
+
+@test "Utils: install_packages_from_file" {
+  export PLATFORM="macOS"
+
+  local list_file="$TEST_DIR/pkg_list.txt"
+  echo "# Comment" > "$list_file"
+  rpm() {
+    if [[ "$1" == "-q" && "$2" == "--whatprovides" ]]; then
+       # shift args to simulate looking up the package name
+       local pkg_name="$3"
+       if [[ "$pkg_name" == "vim" ]]; then
+          return 0 # vim is installed
+       fi
+       return 1
+    elif [[ "$1" == "-q" ]]; then
+       if [[ "$2" == "$MOCKED_NOT_FOUND" ]]; then
+         return 1
+       fi
+       return 0
+    fi
+  }
+  echo "pkg1" >> "$list_file"
+  echo "" >> "$list_file"
+  echo "pkg2" >> "$list_file"
+
+  run install_packages_from_file "$list_file"
+
+  [[ "$output" == *"MOCKED: brew install pkg1"* ]]
+  [[ "$output" == *"MOCKED: brew install pkg2"* ]]
+}
+
+@test "Utils: install_pkg Fedora uses rpm --whatprovides" {
+  export PLATFORM="Fedora"
+
+  # Mock rpm to simulate failure on simple query but success on whatprovides for 'vim'
+  rpm() {
+    if [[ "$1" == "-q" && "$2" == "--whatprovides" ]]; then
+       if [[ "$3" == "vim" ]]; then
+          return 0
+       fi
+       return 1
+    elif [[ "$1" == "-q" ]]; then
+       return 1 # fail standard check
+    fi
+  }
+  export -f rpm
+
+  # Mock dnf
+  dnf() { echo "MOCKED: dnf $*"; }
+  export -f dnf
+
+  # Mock sudo (pass through)
+  sudo() {
+    if [[ "$1" == "dnf" ]]; then
+      dnf "${@:2}"
+    else
+      "$@"
+    fi
+  }
+  export -f sudo
+
+  # Case 1: Package not found by name or provider -> Installs
+  run install_pkg "unknown-pkg"
+  [[ "$output" == *"Installing unknown-pkg via dnf"* ]]
+  [[ "$output" == *"MOCKED: dnf install -y unknown-pkg"* ]]
+
+  # Case 2: Package found by provider (vim) -> Skips install
+  run install_pkg "vim"
+  [[ "$output" != *"Installing vim via dnf"* ]]
+  [[ "$output" != *"MOCKED: dnf install -y vim"* ]]
+}

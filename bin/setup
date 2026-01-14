@@ -10,6 +10,7 @@ source "./lib/core/utils.sh"
 for lib in ./lib/modules/*.sh; do
   source "$lib"
 done
+source "./lib/core/zsh.sh"
 
 echo -e "${WHITE}Detected platform: ${PLATFORM}${NC}"
 
@@ -18,6 +19,9 @@ if [ ! -d "$CONFIG_DIR" ]
 then
   mkdir -p "$CONFIG_DIR"
 fi
+
+# Ensure .zshrc sources our dev config
+ensure_zsh_include
 
 # copy config file to ~/.config/dev-setup.conf if it doesn't exist
 if [ ! -f "$CONFIG_FILE" ]
@@ -32,7 +36,8 @@ prompt_config() {
   echo -e "Config path: ${WHITE}$CONFIG_FILE${NC}"
 
   echo -e "\n${WHITE}Current Toggles:${NC}"
-  local modules=(
+  echo -e "\n${WHITE}Current Toggles:${NC}"
+  local all_modules=(
     "google_drive"
     "dotfiles"
     "vim_tmux"
@@ -49,6 +54,26 @@ prompt_config() {
     "gemini_cli"
     "postman_cli"
   )
+
+  local modules=()
+  for module in "${all_modules[@]}"; do
+    local supported=true
+    case "$module" in
+      "app_store")
+        is_macos || supported=false
+        ;;
+      "1password" | "1password_ssh")
+        # Supported on Linux and macOS
+        ;;
+      *)
+        # Default supported
+        ;;
+    esac
+
+    if $supported; then
+      modules+=("$module")
+    fi
+  done
 
   for module in "${modules[@]}"; do
     local module_status="${RED}disabled${NC}"
@@ -114,6 +139,9 @@ if [[ "${(%):-%N}" == "$0" ]]; then
     setup_homebrew
   fi
 
+  # setup common packages (git, vim, tmux, etc.)
+  install_common_packages
+
   # google drive setup
   setup_google_drive
 
@@ -129,9 +157,6 @@ if [[ "${(%):-%N}" == "$0" ]]; then
 
     # add ghostty to path
     install_ghostty_path
-
-    # homebrew and formulae
-    install_homebrew_formulae
 
     # iTerm2 colors
     setup_iterm_colors
