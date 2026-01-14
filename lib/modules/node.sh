@@ -10,7 +10,7 @@ install_nvm_and_node() {
   else
     echo -e "${WHITE}Installing nvm...${NC}"
 
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | zsh
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 
     # source nvm
     if [ -s "$NVM_DIR/nvm.sh" ]; then
