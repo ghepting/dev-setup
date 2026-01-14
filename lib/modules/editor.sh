@@ -14,10 +14,11 @@ configure_editor() {
   # macOS-specific file associations
   if is_macos; then
     if ! check_app "Antigravity"; then
-      echo -e "${GRAY}Antigravity not found, skipping file associations${NC}"
-      return
+      echo -e "${WHITE}Installing Antigravity...${NC}"
+      brew bundle --file=lib/packages/editor/Brewfile -q
+    else
+      echo -e "${BLUE}Antigravity already installed${NC}"
     fi
-
     # verify duti is installed
     ANTIGRAVITY_BUNDLE_ID=$(mdls -name kMDItemCFBundleIdentifier -r /Applications/Antigravity.app 2>/dev/null || echo "com.google.Antigravity")
 

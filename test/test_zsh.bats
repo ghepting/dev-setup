@@ -13,7 +13,6 @@ setup() {
   touch "$ZSHRC_FILE"
 
   # Source ZSH lib
-  source "lib/core/globals.sh" 2>/dev/null || true # In case globals split
   source "lib/core/vars.sh"
   source "lib/core/utils.sh"
   source "lib/core/zsh.sh"
@@ -63,5 +62,22 @@ setup() {
   [ "$status" -eq 1 ]
 
   run grep -c "export TEST_VAR=1" "$DEV_ZSH_CONFIG"
+  [ "$output" -eq 1 ]
+}
+
+@test "ZSH: add_to_zsh_config is idempotent with marker" {
+  ensure_zsh_include
+  local multiline="Line 1
+Line 2"
+
+  add_to_zsh_config "$multiline" "TEST_MARKER"
+  run grep "Line 1" "$DEV_ZSH_CONFIG"
+
+  run add_to_zsh_config "Line 1
+Line 2 CHANGED" "TEST_MARKER"
+  [ "$status" -eq 1 ]
+
+  # Should match content based on marker presence, not content difference
+  run grep -c "# TEST_MARKER" "$DEV_ZSH_CONFIG"
   [ "$output" -eq 1 ]
 }

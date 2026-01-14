@@ -1,0 +1,9 @@
+build-essential
+libssl-dev
+libreadline-dev
+zlib1g-dev
+libyaml-dev
+libffi-dev
+autoconf
+bison
+libncurses5-dev

@@ -129,7 +129,7 @@ setup_google_drive() {
   if is_macos && [[ "$gdrive_type" == "app" ]]; then
     if ! check_app "Google Drive"; then
       echo -e "${YELLOW}Installing Google Drive for macOS...${NC}"
-      brew install --cask google-drive
+      brew bundle --file=lib/packages/google_drive/Brewfile -q
       open /Applications/Google\ Drive.app
       echo -n "Press [Enter] after logging in to Google Drive..."
       read

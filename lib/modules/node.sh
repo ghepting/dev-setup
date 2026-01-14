@@ -10,6 +10,16 @@ install_nvm_and_node() {
   else
     echo -e "${WHITE}Installing nvm...${NC}"
 
+    if is_linux; then
+      if is_debian; then
+         install_packages_from_file "lib/packages/node/debian.list"
+      elif is_fedora; then
+         install_packages_from_file "lib/packages/node/fedora.list"
+      elif is_arch; then
+         install_packages_from_file "lib/packages/node/arch.list"
+      fi
+    fi
+
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 
     # source nvm

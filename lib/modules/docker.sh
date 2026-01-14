@@ -5,7 +5,7 @@ setup_docker() {
   if ! command -v docker &> /dev/null; then
     if is_macos; then
       echo -e "${YELLOW}Installing Docker Desktop...${NC}"
-      brew install --cask docker
+      brew bundle --file=lib/packages/docker/Brewfile -q
     elif is_linux; then
       echo -e "${YELLOW}Installing Docker...${NC}"
       if is_debian; then

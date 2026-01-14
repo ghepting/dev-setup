@@ -1,0 +1,5 @@
+make
+gcc
+gcc-c++
+openssl-devel
+libncurses-devel

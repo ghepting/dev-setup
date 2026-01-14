@@ -41,7 +41,7 @@ install_ghostty_path() {
 install_homebrew_formulae() {
   # install homebrew packages
   echo -e "${WHITE}Installing Homebrew formulae...${NC}"
-  brew bundle --upgrade -q
+  brew bundle --file=lib/packages/Brewfile --upgrade -q
 
   echo -e "${BLUE}Using iterm2 $(defaults read /Applications/iTerm.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
   echo -e "${BLUE}Using ghostty $(defaults read /Applications/Ghostty.app/Contents/Info.plist CFBundleShortVersionString)${NC}"

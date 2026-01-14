@@ -1,0 +1,14 @@
+gcc
+g++
+make
+openssl-devel
+zlib-devel
+readline-devel
+libyaml-devel
+libffi-devel
+redhat-rpm-config
+patch
+bzip2
+autoconf
+automake
+ruby-build

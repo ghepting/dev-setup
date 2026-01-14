@@ -23,6 +23,11 @@ add_to_zsh_config() {
   local comment="$2"
 
   # Check if content is already in the file
+  # If a comment marker is provided, check for that first as it is more reliable for multi-line content
+  if [ -n "$comment" ] && grep -qF "# $comment" "$DEV_ZSH_CONFIG"; then
+    return 1
+  fi
+
   if ! grep -qF "$content" "$DEV_ZSH_CONFIG"; then
     echo '' >> "$DEV_ZSH_CONFIG"
     if [ -n "$comment" ]; then

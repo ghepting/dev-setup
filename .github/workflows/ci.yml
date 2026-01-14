@@ -20,15 +20,15 @@ jobs:
           - name: Debian
             os: ubuntu-latest
             container: debian:latest
-            install_cmd: apt-get update && apt-get install -y bats git zsh
+            install_cmd: apt-get update && apt-get install -y bats git zsh sudo curl wget procps ca-certificates build-essential
           - name: Arch
             os: ubuntu-latest
             container: archlinux:latest
-            install_cmd: pacman -Syu --noconfirm bats git zsh
+            install_cmd: pacman -Syu --noconfirm bats git zsh sudo curl wget procps base-devel
           - name: Fedora
             os: ubuntu-latest
             container: fedora:latest
-            install_cmd: dnf install -y bats git zsh
+            install_cmd: dnf install -y bats git zsh sudo curl wget procps gem
 
     steps:
       - name: Disable git safe directory checks

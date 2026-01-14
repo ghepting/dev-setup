@@ -171,6 +171,21 @@ setup() {
   run setup_1password
   [ "$status" -eq 0 ]
   echo "$output" | grep -q "Installing 1Password GUI for Debian"
+
+  export PLATFORM="Fedora"
+  export MOCKED_NOT_FOUND="1password"
+  # Mock sh to capture the repo file creation command
+  sh() {
+     echo "MOCKED: sh $*"
+  }
+  export -f sh
+
+  run setup_1password
+  [ "$status" -eq 0 ]
+  echo "$output" | grep -q "Installing 1Password GUI for Fedora"
+  echo "$output" | grep -q "MOCKED: sudo rpm --import"
+  echo "$output" | grep -q "MOCKED: sudo sh -c"
+  echo "$output" | grep -q "baseurl=https://downloads.1password.com/linux/rpm/stable"
 }
 
 @test "1Password CLI: handles installation and sign-in" {
@@ -219,13 +234,63 @@ setup() {
   load_lib "lib/modules/node.sh"
 
   run install_rbenv_and_ruby
-  echo "$output" | grep -q "MOCKED: brew install rbenv" || echo "$output" | grep -q "Installing rbenv"
+  run install_rbenv_and_ruby
+  echo "$output" | grep -q "MOCKED: brew bundle --file=lib/packages/ruby/Brewfile" || echo "$output" | grep -q "Installing rbenv"
 
   run install_pyenv_and_python
-  echo "$output" | grep -q "Installing pyenv"
+  echo "$output" | grep -q "MOCKED: brew bundle --file=lib/packages/python/Brewfile" || echo "$output" | grep -q "Installing pyenv"
+  echo "$output" | grep -q "Added pyenv init to config"
 
   run install_nvm_and_node
   echo "$output" | grep -q "Installing nvm"
+  run install_nvm_and_node
+  echo "$output" | grep -q "Installing nvm"
+}
+
+@test "Languages: installs pyenv via git on Linux" {
+  export PLATFORM="Debian"
+  export MOCKED_NOT_FOUND="pyenv"
+  load_lib "lib/modules/python.sh"
+
+  # Mock git to verify clone
+  git() { echo "MOCKED: git $*"; }
+  export -f git
+
+  # Mock install_packages_from_file to verify it's called with correct list
+  install_packages_from_file() {
+    echo "CALLED: install_packages_from_file $*"
+  }
+  export -f install_packages_from_file
+
+  run install_pyenv_and_python
+  echo "$output" | grep -q "CALLED: install_packages_from_file lib/packages/python/debian.list"
+  echo "$output" | grep -q "Cloning pyenv to ~/.pyenv"
+  echo "$output" | grep -q "MOCKED: git clone https://github.com/pyenv/pyenv.git"
+  echo "$output" | grep -q "MOCKED: git clone https://github.com/pyenv/pyenv.git"
+}
+
+@test "Languages: installs node dependencies on Linux" {
+  export PLATFORM="Debian"
+  export MOCKED_NOT_FOUND="nvm"
+  load_lib "lib/modules/node.sh"
+
+  # Mock curl to return success for install script
+  curl() { echo "MOCKED: curl $*"; }
+  export -f curl
+
+  # Mock bash to just echo
+  bash() { :; }
+  export -f bash
+
+  # Mock install_packages_from_file to verify it's called with correct list
+  install_packages_from_file() {
+    echo "CALLED: install_packages_from_file $*"
+  }
+  export -f install_packages_from_file
+
+  run install_nvm_and_node
+  echo "$output" | grep -q "CALLED: install_packages_from_file lib/packages/node/debian.list"
+  echo "$output" | grep -q "Installing nvm..." || echo "$output" | grep -q "MOCKED: curl"
 }
 
 @test "Google Drive: configures rclone on Debian" {
@@ -279,4 +344,52 @@ setup() {
   run setup_vim_tmux_config
   echo "$output" | grep -q "Installing vim-nox"
   echo "$output" | grep -q "MOCKED: sudo update-alternatives --set vi /usr/bin/vim.nox"
+}
+
+@test "Apps: installs optional apps on macOS" {
+  load_lib "lib/modules/apps.sh"
+  setup_mocks
+
+  export PLATFORM="macOS"
+  echo "google_chrome=true" > "$CONFIG_FILE"
+  echo "slack=true" >> "$CONFIG_FILE"
+  echo "fonts=true" >> "$CONFIG_FILE"
+
+  run install_optional_apps
+  echo "$output" | grep -q "Installing Google Chrome"
+  echo "$output" | grep -q "MOCKED: brew bundle --file=lib/packages/chrome/Brewfile"
+  echo "$output" | grep -q "Installing Slack"
+  echo "$output" | grep -q "MOCKED: brew bundle --file=lib/packages/slack/Brewfile"
+  echo "$output" | grep -q "Installing Fonts"
+  echo "$output" | grep -q "MOCKED: brew bundle --file=lib/packages/fonts/Brewfile"
+}
+
+@test "Apps: handles Linux app logic" {
+  load_lib "lib/modules/apps.sh"
+  setup_mocks
+
+  # Google Chrome on Debian
+  export PLATFORM="Debian"
+  echo "google_chrome=true" > "$CONFIG_FILE"
+  export MOCKED_NOT_FOUND="google-chrome"
+
+  run install_optional_apps
+  echo "$output" | grep -q "Installing Google Chrome for Debian"
+  echo "$output" | grep -q "MOCKED: sudo apt-get install -y /tmp/google-chrome.deb"
+
+  # Google Chrome on Fedora
+  export PLATFORM="Fedora"
+
+  run install_optional_apps
+  echo "$output" | grep -q "Installing Google Chrome for Fedora"
+  echo "$output" | grep -q "MOCKED: sudo dnf config-manager --set-enabled google-chrome"
+
+  # Slack on Debian
+  export PLATFORM="Debian"
+  echo "slack=true" > "$CONFIG_FILE"
+  echo "google_chrome=false" >> "$CONFIG_FILE"
+
+  run install_optional_apps
+  echo "$output" | grep -q "Installing Slack for Debian"
+  echo "$output" | grep -q "Please install Slack manually"
 }

@@ -107,6 +107,14 @@ setup_mocks() {
 
   rpm() {
     if [[ "$1" == "-q" ]]; then
+      # Handle 'rpm -q --whatprovides pkg'
+      if [[ "$2" == "--whatprovides" ]]; then
+         if [[ "$MOCK_PKG_INSTALLED" == *"$3"* ]]; then
+           return 0
+         fi
+         return 1
+      fi
+      # Handle 'rpm -q pkg'
       if [[ "$MOCK_PKG_INSTALLED" == *"$2"* ]]; then
         return 0
       fi
@@ -231,6 +239,18 @@ setup_mocks() {
     echo "MOCKED: open $*" >&2
   }
   export -f open
+
+  # Mock git
+  git() {
+    echo "MOCKED: git $*" >&2
+  }
+  export -f git
+
+  # Mock wget
+  wget() {
+    echo "MOCKED: wget $*" >&2
+  }
+  export -f wget
 }
 
 # Common colors for scripts

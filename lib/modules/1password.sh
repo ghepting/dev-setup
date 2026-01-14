@@ -4,9 +4,9 @@ setup_1password() {
   if is_macos; then
     if ! check_app "1Password"; then
       echo -e "${WHITE}Installing 1Password GUI for macOS...${NC}"
-      brew install --cask 1password
+      brew bundle --file=lib/packages/1password/Brewfile -q
     else
-      echo -e "${BLUE}Using 1Password $(defaults read /Applications/1Password.app/Contents/Info CFBundleShortVersionString)${NC}"
+      echo -e "${BLUE}1Password GUI already installed${NC}"
     fi
   elif is_debian; then
     if ! command -v 1password &> /dev/null; then
@@ -21,6 +21,17 @@ setup_1password() {
       sudo apt-get update && sudo apt-get install -y 1password
     else
       echo -e "${BLUE}1Password GUI is already installed.${NC}"
+    fi
+  elif is_fedora; then
+    if ! command -v 1password &> /dev/null; then
+      echo -e "${WHITE}Installing 1Password GUI for Fedora...${NC}"
+      # Add the 1Password Yum repository
+      sudo rpm --import https://downloads.1password.com/linux/keys/1password.asc
+      sudo sh -c 'echo -e "[1password]\nname=1Password Stable Channel\nbaseurl=https://downloads.1password.com/linux/rpm/stable/\$basearch\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=\"https://downloads.1password.com/linux/keys/1password.asc\"" > /etc/yum.repos.d/1password.repo'
+
+      install_pkg "1password"
+    else
+      echo -e "${BLUE}1Password GUI already installed${NC}"
     fi
   else
     echo -e "${YELLOW}1Password GUI installation not yet supported on this Linux distribution.${NC}"

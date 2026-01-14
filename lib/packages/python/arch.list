@@ -1,0 +1,9 @@
+base-devel
+openssl
+zlib
+xz
+tk
+sqlite
+libffi
+bzip2
+readline

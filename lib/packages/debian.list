@@ -2,8 +2,4 @@
 vim
 silversearcher-ag
 universal-ctags
-build-essential
-libssl-dev
-universal-ctags
-libreadline-dev
-zlib1g-dev
+

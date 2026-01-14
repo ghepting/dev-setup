@@ -6,6 +6,8 @@
 # source variables and utility functions
 source "./lib/core/vars.sh"
 source "./lib/core/utils.sh"
+source "lib/modules/postman.sh"
+source "lib/modules/apps.sh"
 
 for lib in ./lib/modules/*.sh; do
   source "$lib"
@@ -38,6 +40,12 @@ prompt_config() {
   echo -e "\n${WHITE}Current Toggles:${NC}"
   echo -e "\n${WHITE}Current Toggles:${NC}"
   local all_modules=(
+    "app_store"
+    "google_chrome"
+    "slack"
+    "linear"
+    "ngrok"
+    "fonts"
     "google_drive"
     "dotfiles"
     "vim_tmux"
@@ -49,7 +57,6 @@ prompt_config() {
     "python"
     "node"
     "docker"
-    "app_store"
     "claude_code_cli"
     "gemini_cli"
     "postman_cli"
@@ -59,12 +66,15 @@ prompt_config() {
   for module in "${all_modules[@]}"; do
     local supported=true
     case "$module" in
-      "app_store")
-        is_macos || supported=false
-        ;;
-      "1password" | "1password_ssh")
-        # Supported on Linux and macOS
-        ;;
+  "app_store"|"ngrok"|"fonts")
+     is_macos || supported=false
+     ;;
+  "google_chrome"|"slack"|"linear")
+     # Supported on macOS and Linux (partial support)
+     ;;
+  "1password" | "1password_ssh")
+     # Supported on Linux and macOS
+     ;;
       *)
         # Default supported
         ;;
@@ -124,6 +134,14 @@ prompt_config() {
         ;;
     esac
   done
+  # Enforce Dependencies
+  if is_enabled "postman_cli" || is_enabled "gemini_cli" || is_enabled "claude_code_cli"; then
+     if ! is_enabled "node"; then
+       echo -e "${YELLOW}Enabling Node.js as it is required by selected CLI tools.${NC}"
+       set_config_value "node" "true"
+     fi
+  fi
+
   echo -e "\n${GREEN}Configuration updated.${NC}"
   echo -e "${YELLOW}----------------------------${NC}\n"
 }
@@ -141,6 +159,9 @@ if [[ "${(%):-%N}" == "$0" ]]; then
 
   # setup common packages (git, vim, tmux, etc.)
   install_common_packages
+
+  # Install optional apps
+  install_optional_apps
 
   # google drive setup
   setup_google_drive
