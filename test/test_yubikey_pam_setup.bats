@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-load "../../test_helper.sh"
+load "test_helper.sh"
 
 setup() {
   export MOCK_OS="macOS"
@@ -15,10 +15,13 @@ setup() {
   export -f id
 
   # Mock logs to avoid dependency on utils during tests
-  log_status() { echo "[INFO] $1"; }
+  log_info() { echo "[INFO] $1"; }
+  log_note() { echo "[NOTE] $1"; }
+  log_status() { echo "[STATUS] $1"; }
+  log_success() { echo "[SUCCESS] $1"; }
   log_warn() { echo "[WARN] $1"; }
   log_error() { echo "[ERROR] $1"; }
-  export -f log_status log_warn log_error
+  export -f log_info log_note log_status log_success log_warn log_error
 
   export MOCK_PKG_INSTALLED="pam-u2f"
   export MOCK_PAM_U2F_PATH="/opt/homebrew/Cellar/pam-u2f/1.0.0/lib/pam_u2f.so"
@@ -190,7 +193,7 @@ setup() {
   # Inputs: y (apply sudo), n (screensaver) - Pamu2fcfg handles missing file without prompt
   run bash -c "source '$BATS_TEST_TMPDIR/script_under_test.sh'; echo -e 'y\nn' | setup_yubikey_pam"
 
-  [[ "$output" == *"Installing pam-u2f via Homebrew"* ]]
+  [[ "$output" == *"[INFO] Installing pam-u2f via Homebrew"* ]]
 }
 
 @test "Generate YubiKey credentials if missing" {
@@ -205,8 +208,8 @@ setup() {
 
   echo "GEN_KEY_OUTPUT: $output" >&2
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Generating YubiKey credentials"* ]]
-  [[ "$output" == *"YubiKey credentials generated successfully"* ]]
+  [[ "$output" == *"[STATUS] Generating YubiKey credentials"* ]]
+  [[ "$output" == *"[SUCCESS] YubiKey credentials generated successfully"* ]]
 
   [ -f "$BATS_TEST_TMPDIR/.config/Yubico/u2f_keys" ]
 }
@@ -221,8 +224,8 @@ setup() {
   # Inputs: n (overwrite), y (apply sudo), n (screensaver)
   run bash -c "source '$BATS_TEST_TMPDIR/script_under_test.sh'; echo -e 'n\ny\nn' | setup_yubikey_pam"
 
-  [[ "$output" == *"YubiKey credentials already exist"* ]]
-  [[ "$output" == *"Skipping YubiKey credential generation"* ]]
+  [[ "$output" == *"[WARN] YubiKey credentials already exist"* ]]
+  [[ "$output" == *"[STATUS] Using YubiKey credentials from"* ]]
   # File should remain unchanged
   run cat "$BATS_TEST_TMPDIR/.config/Yubico/u2f_keys"
   [[ "$output" == "existing_key" ]]
@@ -246,12 +249,12 @@ setup() {
 @test "Update sudo PAM config successfully" {
   sed -e 's/\$EUID/$(id -u)/g' lib/modules/yubikey_pam_setup.sh > "$BATS_TEST_TMPDIR/script_under_test.sh"
 
-  # Inputs: y (apply sudo), n (screensaver)
-  run bash -c "source '$BATS_TEST_TMPDIR/script_under_test.sh'; echo -e 'y\nn' | setup_yubikey_pam"
+  # Inputs: y (enable sudo), y (apply changes), n (screensaver)
+  run bash -c "source '$BATS_TEST_TMPDIR/script_under_test.sh'; echo -e 'y\ny\nn' | setup_yubikey_pam"
 
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Updating /etc/pam.d/sudo"* ]]
-  [[ "$output" == *"Successfully updated /etc/pam.d/sudo"* ]]
+  [[ "$output" == *"[STATUS] Updating /etc/pam.d/sudo"* ]]
+  [[ "$output" == *"[SUCCESS] ✓ Successfully updated /etc/pam.d/sudo"* ]]
 
   # Verify modifying the mocked file
   run cat "$MOCK_PAM_DIR/sudo"
@@ -261,10 +264,10 @@ setup() {
 @test "Skip PAM update if user says no" {
   sed -e 's/\$EUID/$(id -u)/g' lib/modules/yubikey_pam_setup.sh > "$BATS_TEST_TMPDIR/script_under_test.sh"
 
-  # Inputs: n (don't apply sudo), n (screensaver)
-  run bash -c "source '$BATS_TEST_TMPDIR/script_under_test.sh'; echo -e 'n\nn' | setup_yubikey_pam"
+  # Inputs: y (enable sudo), n (don't apply changes), n (screensaver)
+  run bash -c "source '$BATS_TEST_TMPDIR/script_under_test.sh'; echo -e 'y\nn\nn' | setup_yubikey_pam"
 
-    [[ "$output" == *"Skipping /etc/pam.d/sudo"* ]]
+    [[ "$output" == *"[NOTE] Skipping /etc/pam.d/sudo"* ]]
 
     # Verify NOT modifying the mocked file
     run cat "$MOCK_PAM_DIR/sudo"
@@ -277,11 +280,14 @@ setup() {
     sed -e 's/\$EUID/$(id -u)/g' -e '/source.*lib\/core/d' -e 's/if \[\[ -n "\$ZSH_VERSION" \]\]; then/setup_yubikey_pam "$@"; exit $?; if false; then/' lib/modules/yubikey_pam_setup.sh > "$BATS_TEST_TMPDIR/script_under_test.sh"
     chmod +x "$BATS_TEST_TMPDIR/script_under_test.sh"
 
-    # Inputs: y (apply sudo), n (screensaver)
-    run bash -c "source '$BATS_TEST_TMPDIR/script_under_test.sh'; echo -e 'y\nn' | setup_yubikey_pam"
+    # Inputs: y (enable sudo), y (apply changes), n (screensaver)
+    run bash -c "source '$BATS_TEST_TMPDIR/script_under_test.sh'; echo -e 'y\ny\nn' | setup_yubikey_pam"
 
     [ "$status" -eq 1 ]
-    [[ "$output" == *"sudo test failed! Restoring backup..."* ]]
+    [[ "$output" == *"[ERROR] ✗ sudo test failed! Restoring backup..."* ]]
+    [[ "$output" == *"SUDO LOCKOUT DETECTED"* ]]
+    [[ "$output" == *"Intel: Hold Cmd+R during startup"* ]]
+    [[ "$output" == *"Apple Silicon: Hold Power button during startup"* ]]
 
     # Verify backup restored (file should not have u2f line)
     run cat "$MOCK_PAM_DIR/sudo"

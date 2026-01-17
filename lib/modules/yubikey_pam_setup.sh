@@ -2,6 +2,7 @@
 
 setup_yubikey_pam() {
   local yubikey_credentials_generated=false
+  local pam_conf_updated=false
 
   # Check if running on macOS
   if [[ "$(uname)" != "Darwin" ]]; then
@@ -68,22 +69,20 @@ setup_yubikey_pam() {
     exit 1
   fi
 
+  # Helper to check if already configured
+  is_pam_configured() {
+    local pam_file=$1
+    sudo grep -q "pam_u2f.so" "$pam_file" 2>/dev/null
+  }
+
   # Function to safely update PAM config
   update_pam_config() {
-    local pam_conf_updated=false
     local pam_file=$1
     local pam_line="auth       sufficient     $PAM_U2F_PATH cue"
 
     # Check if file exists
     if [[ ! -f "$pam_file" ]]; then
       log_warn "$pam_file does not exist, skipping"
-      return 0
-    fi
-
-    # Check if already configured
-    log_note "Checking existing PAM configuration in $pam_file..."
-    if sudo grep -q "pam_u2f.so" "$pam_file"; then
-      log_status "Using YubiKey PAM configuration in $pam_file"
       return 0
     fi
 
@@ -133,7 +132,27 @@ setup_yubikey_pam() {
       else
         log_error "✗ sudo test failed! Restoring backup..."
         sudo cp "$backup_file" "$pam_file"
-        log_error "Backup restored. Please investigate the issue."
+        if sudo true 2>/dev/null; then
+          log_success "Backup restored successfully."
+        else
+          log_error "CRITICAL: Backup restoration may have failed, or sudo is still broken."
+          log_error "------------------------------------------------------------"
+          log_error "!!! SUDO LOCKOUT DETECTED !!!"
+          log_error "------------------------------------------------------------"
+          log_error "If you cannot use sudo, you must fix it via Recovery Mode:"
+          log_info "  1. Restart your Mac:"
+          log_info "     - Intel: Hold Cmd+R during startup"
+          log_info "     - Apple Silicon: Hold Power button during startup, then select Options"
+          log_info "  2. Open Terminal from the Utilities menu"
+          log_info "  3. Mount your disk (if it's not already mounted):"
+          log_info "     diskutil mount 'Macintosh HD'"
+          log_info "  4. Navigate to the config:"
+          log_info "     cd /Volumes/Macintosh\ HD/etc/pam.d"
+          log_info "  5. Restore the backup or manually remove the line:\n"
+          log_info "     cp sudo.backup-* sudo"
+          log_info "  6. Restart normally"
+          log_error "------------------------------------------------------------"
+        fi
         return 1
       fi
     fi
@@ -142,26 +161,29 @@ setup_yubikey_pam() {
   }
 
   # Update sudo PAM config
-  if confirm_action "Do you want to enable YubiKey for sudo?" "n"; then
-    update_pam_config "/etc/pam.d/sudo"
+  local sudo_pam="/etc/pam.d/sudo"
+  if is_pam_configured "$sudo_pam"; then
+    log_status "Using YubiKey PAM configuration in $sudo_pam"
+  elif confirm_action "Do you want to enable YubiKey for sudo?" "n"; then
+    update_pam_config "$sudo_pam" || exit 1
   fi
 
   # Ask if user wants to configure screensaver
-  # Note: this actually doesn't really work on macOS with the modern touch id, but it's worth having for fallback/older devices
-  if confirm_action "Do you want to enable YubiKey for screen unlock?" "n"; then
-    update_pam_config "/etc/pam.d/screensaver"
+  local screensaver_pam="/etc/pam.d/screensaver"
+  if is_pam_configured "$screensaver_pam"; then
+    log_status "Using YubiKey PAM configuration in $screensaver_pam"
+  elif confirm_action "Do you want to enable YubiKey for screen unlock?" "n"; then
+    update_pam_config "$screensaver_pam" || exit 1
   fi
 
   if [[ "$pam_conf_updated" == "true" ]]; then
-    log_warn "To test, run 'sudo echo "testing"' in a *new* shell."
+    log_warn "To test, run 'sudo echo \"testing\"' in a *new* shell."
     log_info "You should be prompted for your YubiKey PIN and touch."
     log_info "Backups are stored with timestamp suffixes in /etc/pam.d/"
     log_info "To restore: sudo cp /etc/pam.d/sudo.backup-YYYYMMDD-HHMMSS /etc/pam.d/sudo"
-  else
-    log_status "Using existing YubiKey PAM configurations."
   fi
 
-  if [[ "$yubikey_credentials_generated" == "true" ]]; then
+  if [[ "$yubikey_credentials_generated" == "true" || "$pam_conf_updated" == "true" ]]; then
     log_success "YubiKey setup complete"
   fi
 }
