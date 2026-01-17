@@ -12,39 +12,36 @@ install_gemini_cli() {
     OUTDATED_OUTPUT=$(npm $NPM_OUTDATED_ARGS $NPM_GEMINI_PACKAGE --json 2> /dev/null)
     if [[ "$OUTDATED_OUTPUT" == *"$NPM_GEMINI_PACKAGE"* ]]; then
       # prompt to update
-      echo -n "Update $NPM_GEMINI_PACKAGE? [y/N] "
-      read -k 1 REPLY
-      echo
-      if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo -e "${YELLOW}$NPM_GEMINI_PACKAGE is outdated${NC}"
-        echo -e "${WHITE}Updating Gemini CLI...${NC}"
+      if confirm_action "Update $NPM_GEMINI_PACKAGE?" "n"; then
+        log_warn "$NPM_GEMINI_PACKAGE is outdated"
+        log_info "Updating Gemini CLI..."
         if npm $NPM_UPDATE_ARGS $NPM_GEMINI_PACKAGE; then
-          echo -e "${GREEN}Successfully updated $NPM_GEMINI_PACKAGE${NC}"
+          log_success "Successfully updated $NPM_GEMINI_PACKAGE"
         else
-          echo -e "${MAGENTA}Failed to npm update $NPM_GEMINI_PACKAGE. Manually removing current package directories to do clean install...${NC}"
+          log_error "Failed to npm update $NPM_GEMINI_PACKAGE. Manually removing current package directories to do clean install..."
           # update failed due to permissions, remove gemini to install fresh
           rm -rf $(which gemini)
           rm -rf $(npm $NPM_LIST_ARGS)
           if npm $NPM_INSTALL_ARGS $NPM_GEMINI_PACKAGE; then
-            echo -e "${GREEN}Successfully re-installed $NPM_GEMINI_PACKAGE${NC}"
+            log_success "Successfully re-installed $NPM_GEMINI_PACKAGE"
           else
-            echo -e "${RED}Failed to re-install $NPM_GEMINI_PACKAGE${NC}"
+            log_error "Failed to re-install $NPM_GEMINI_PACKAGE"
             exit 1
           fi
         fi
       fi
     fi
 
-    echo -e "${BLUE}Using gemini $(gemini --version)${NC}"
+    log_status "Using gemini $(gemini --version)"
   else
     # check if gemini is enabled in config file
     if is_enabled "gemini_cli"; then
-      echo -e "${WHITE}Installing Gemini CLI...${NC}"
+      log_info "Installing Gemini CLI..."
       if npm $NPM_INSTALL_ARGS $NPM_GEMINI_PACKAGE; then
-        echo -e "${GREEN}Successfully installed $NPM_GEMINI_PACKAGE${NC}"
+        log_success "Successfully installed $NPM_GEMINI_PACKAGE"
         RESTART_REQUIRED=true
       else
-        echo -e "${RED}Failed to install $NPM_GEMINI_PACKAGE${NC}"
+        log_error "Failed to install $NPM_GEMINI_PACKAGE"
         exit 1
       fi
     fi

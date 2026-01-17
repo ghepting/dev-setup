@@ -8,13 +8,13 @@ configure_editor() {
   # configure default EDITOR in ~/.zshrc
   if ! grep -q "export EDITOR" "$ZSHRC_FILE"; then
     echo "export EDITOR=\"$preferred_editor\"" >>"$ZSHRC_FILE"
-    echo -e "${GREEN}Configured $preferred_editor as EDITOR in $ZSHRC_FILE${NC}"
+    log_success "Configured $preferred_editor as EDITOR in $ZSHRC_FILE"
   fi
 
   # macOS-specific file associations
   if is_macos; then
     if ! check_app "Antigravity"; then
-      echo -e "${GRAY}Antigravity not found, skipping file associations${NC}"
+      log_info "Antigravity not found, skipping file associations"
       return
     fi
 
@@ -23,7 +23,7 @@ configure_editor() {
 
     if ! command -v duti &>/dev/null; then
       brew install duti
-      echo -e "${GREEN}Installed duti${NC}"
+      log_success "Installed duti"
       RESTART_REQUIRED=true
     fi
 
@@ -133,7 +133,7 @@ configure_editor() {
     for format in "${FORMATS[@]}"; do
       if ! duti -s "$ANTIGRAVITY_BUNDLE_ID" "$format" all; then
         duti -s "$ANTIGRAVITY_BUNDLE_ID" "$format" all
-        echo -e "${GREEN}Configured Antigravity as default editor for $format files${NC}"
+        log_success "Configured Antigravity as default editor for $format files"
       fi
     done
   fi
@@ -143,11 +143,11 @@ install_antigravity_extensions() {
   local extensions_file="${DOTFILES_DIR}/.antigravity/extensions.txt"
 
   if [ ! -f "$extensions_file" ]; then
-    echo -e "${GRAY}Antigravity extensions list not found in dotfiles repository, skipping installation.${NC}"
+    log_info "Antigravity extensions list not found in dotfiles repository, skipping installation."
     return
   fi
 
-  echo -e "${WHITE}Installing Antigravity extensions...${NC}"
+  log_info "Installing Antigravity extensions..."
 
   local installed_extensions
   installed_extensions=$(agy --list-extensions 2>/dev/null)
@@ -158,11 +158,11 @@ install_antigravity_extensions() {
     fi
 
     if echo "$installed_extensions" | grep -qi "^$extension$"; then
-      echo -e "${BLUE}Using $extension${NC}"
+      log_status "Using $extension"
     else
-      echo -e "${CYAN}Installing $extension...${NC}"
+      log_status "Installing $extension"
       agy --install-extension "$extension" &>/dev/null
-      echo -e "${GREEN}Installed $extension${NC}"
+      log_success "Installed $extension"
     fi
   done <"$extensions_file"
 }
@@ -170,7 +170,7 @@ install_antigravity_extensions() {
 update_antigravity_extensions_list() {
   local extensions_file="${DOTFILES_DIR}/.antigravity/extensions.txt"
 
-  echo -e "${WHITE}Updating Antigravity extensions list in dotfiles repository...${NC}"
+  log_info "Updating Antigravity extensions list in dotfiles repository..."
 
   # Ensure the directory exists
   mkdir -p "$(dirname "$extensions_file")"
@@ -181,8 +181,8 @@ update_antigravity_extensions_list() {
 
   # Verify if updates were actually written (checking file size)
   if [[ -s "$extensions_file" ]]; then
-    echo -e "${GREEN}Extensions list updated: $(wc -l <"$extensions_file" | xargs) extensions saved.${NC}"
+    log_success "Extensions list updated: $(wc -l <"$extensions_file" | xargs) extensions saved."
   else
-    echo -e "${RED}Failed to update extensions list (file is empty).${NC}"
+    log_error "Failed to update extensions list (file is empty)."
   fi
 }

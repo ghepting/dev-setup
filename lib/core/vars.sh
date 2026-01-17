@@ -8,6 +8,7 @@ BLUE="\e[34m"
 MAGENTA="\e[35m"
 CYAN="\e[36m"
 WHITE="\e[37m"
+GRAY="\e[90m"
 NC="\e[0m" # No Color (Reset)
 
 # Global Variables

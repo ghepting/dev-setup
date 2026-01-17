@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 # Check if we are running in zsh
-[ -z "$ZSH_VERSION" ] && { echo "Error: This script must be run in zsh."; exit 1; }
+[ -z "$ZSH_VERSION" ] && { log_error "Error: This script must be run in zsh."; exit 1; }
 
 # source variables and utility functions
 source "./lib/core/vars.sh"
@@ -11,7 +11,7 @@ for lib in ./lib/modules/*.sh; do
   source "$lib"
 done
 
-echo -e "${WHITE}Detected platform: ${PLATFORM}${NC}"
+log_info "Detected platform: ${PLATFORM}"
 
 # create config directory if it doesn't exist
 if [ ! -d "$CONFIG_DIR" ]
@@ -23,17 +23,16 @@ fi
 if [ ! -f "$CONFIG_FILE" ]
 then
   cp "./dev-setup.conf" "$CONFIG_FILE"
-  echo -e "${GREEN}Created default configuration at $CONFIG_FILE${NC}"
+  log_success "Created default configuration at $CONFIG_FILE"
 fi
 
 prompt_config() {
-  echo -e "\n${WHITE}--- Configuration Review ---${NC}"
-  echo -e "The setup will proceed with defaults based on your platform ($PLATFORM)."
-  echo -e "Config path: ${WHITE}$CONFIG_FILE${NC}"
+  log_info "--- Configuration Review ---"
+  log_info "The setup will proceed with defaults based on your platform ($PLATFORM)."
+  log_info "Config path: $CONFIG_FILE"
 
-  echo -e "\n${WHITE}Current Toggles:${NC}"
+  log_info "Current Toggles:"
   local modules=(
-    "google_drive"
     "dotfiles"
     "vim_tmux"
     "editor"
@@ -48,6 +47,7 @@ prompt_config() {
     "claude_code_cli"
     "gemini_cli"
     "postman_cli"
+    "yubikey"
   )
 
   for module in "${modules[@]}"; do
@@ -56,51 +56,41 @@ prompt_config() {
     printf "  %-20s : %b\n" "$module" "$module_status"
   done
 
-  echo -n -e "\n${YELLOW}Proceed with current configuration? [Y/n]: ${NC}"
-  read -r REPLY
-  REPLY=${REPLY:-y}
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo -e "${GREEN}Using current configuration.${NC}"
-    echo -e "${YELLOW}----------------------------${NC}\n"
+  if confirm_action "\n${YELLOW}Proceed with current configuration?${NC}" "y"; then
+    log_info "Using current configuration."
+    log_info "----------------------------"
     return
   fi
 
-  echo -e "\n${WHITE}Interactive Configuration (press Enter to keep default):${NC}"
+  log_info "Interactive Configuration (press Enter to keep default):"
   for module in "${modules[@]}"; do
-    local current="n"
-    is_enabled "$module" && current="y"
+    local prompt_default="n"
+    is_enabled "$module" && prompt_default="y"
 
-    echo -n -e "  Enable ${CYAN}${module}${NC}? [y/n] (default: $current): "
-    read -r REPLY
-    case "$REPLY" in
-      [Yy]*)
+    if confirm_action "  Enable ${CYAN}${module}${NC}?" "$prompt_default"; then
         set_config_value "$module" "true"
         if [[ "$module" == "dotfiles" ]]; then
           local current_repo current_dir
           current_repo=$(grep "^dotfiles_repo=" "$CONFIG_FILE" | cut -d= -f2 | tr -d '"')
           current_repo=${current_repo:-$DOTFILES_REPO}
-          echo -n -e "    Repository URL (default: $current_repo): "
-          read -r REPO_REPLY
-          REPO_REPLY=${REPO_REPLY:-$current_repo}
+
+          REPO_REPLY=$(prompt_input "    Repository URL" "$current_repo")
           set_config_value "dotfiles_repo" "$REPO_REPLY"
 
           current_dir=$(grep "^dotfiles_dir=" "$CONFIG_FILE" | cut -d= -f2 | tr -d '"')
           current_dir=${current_dir:-$DOTFILES_DIR}
-          echo -n -e "    Directory path (default: $current_dir): "
-          read -r DIR_REPLY
-          DIR_REPLY=${DIR_REPLY:-$current_dir}
+
+          DIR_REPLY=$(prompt_input "    Directory path" "$current_dir")
           # Resolve ~ if present
           DIR_REPLY="${DIR_REPLY/#\~/$HOME}"
           set_config_value "dotfiles_dir" "$DIR_REPLY"
         fi
-        ;;
-      [Nn]*)
+    else
         set_config_value "$module" "false"
-        ;;
-    esac
+    fi
   done
-  echo -e "\n${GREEN}Configuration updated.${NC}"
-  echo -e "${YELLOW}----------------------------${NC}\n"
+  log_success "Configuration updated."
+  log_info "----------------------------"
 }
 
 # Handle execution
@@ -108,105 +98,65 @@ if [[ "${(%):-%N}" == "$0" ]]; then
   # Run the interactive configuration
   prompt_config
 
-  # initial setup
-  if is_macos; then
-    # install homebrew
-    setup_homebrew
-  fi
-
-  # google drive setup
-  setup_google_drive
-
   # configuration toggles
-  if is_enabled "dotfiles"; then
-    setup_dotfiles
-    symlink_antigravity_config
-  fi
+  is_enabled "dotfiles" && setup_dotfiles && symlink_antigravity_config
 
   if is_macos; then
-    # add homebrew to path
-    install_homebrew_path
+    # homebrew
+    install_homebrew && install_homebrew_path && install_homebrew_formulae && setup_iterm_colors
 
-    # add ghostty to path
-    install_ghostty_path
+    # app store apps
+    is_enabled "app_store" && install_mas_apps
 
-    # homebrew and formulae
-    install_homebrew_formulae
-
-    # iTerm2 colors
-    setup_iterm_colors
+    # yubikey pam setup
+    is_enabled "yubikey" && setup_yubikey_pam
   fi
 
   # configure Antigravity as default editor
-  if is_enabled "editor"; then
-    configure_editor
-    install_antigravity_extensions
-    update_antigravity_extensions_list
-  fi
+  is_enabled "editor" && configure_editor && install_antigravity_extensions && update_antigravity_extensions_list
 
   # docker
-  if is_enabled "docker"; then
-    setup_docker
-  fi
+  is_enabled "docker" && setup_docker
 
   # ruby and rbenv
-  if is_enabled "ruby"; then
-    install_rbenv_and_ruby
-  fi
+  is_enabled "ruby" && install_rbenv_and_ruby
 
   # python and pyenv
-  if is_enabled "python"; then
-    install_pyenv_and_python
-  fi
+  is_enabled "python" && install_pyenv_and_python
 
   # node/npm, and nvm
-  if is_enabled "node"; then
-    install_nvm_and_node
-  fi
+  is_enabled "node" && install_nvm_and_node
 
   # vim & tmux
-  if is_enabled "vim_tmux"; then
-    setup_vim_tmux_config
-  fi
+  is_enabled "vim_tmux" && setup_vim_tmux_config
 
   # 1password modules
-  if is_enabled "1password"; then
-    setup_1password
-  fi
-  if is_enabled "op_cli"; then
-    setup_1password_cli
-  fi
-  if is_enabled "1password_ssh"; then
-    setup_1password_ssh
-  fi
+  is_enabled "1password" && setup_1password
+  is_enabled "op_cli" && setup_1password_cli
+  is_enabled "1password_ssh" && setup_1password_ssh
 
   # gemini CLI
   is_enabled "gemini_cli" && install_gemini_cli
 
-  # claude
+  # claude code CLI
   is_enabled "claude_code_cli" && install_claude_code_cli
 
   # postman CLI
   is_enabled "postman_cli" && install_postman_cli
 
-  # app store apps
-  if is_macos && is_enabled "app_store"; then
-    install_mas_apps
-  fi
-
   # setup git hooks
   if [ -d ".git" ]; then
     if [[ "$(git config core.hooksPath)" != ".hooks" ]]; then
-      echo -e "${WHITE}Configuring git hooks...${NC}"
+      log_info "Configuring git hooks..."
       git config core.hooksPath .hooks
-      echo -e "${GREEN}Successfully configured core.hooksPath to .hooks/${NC}"
+      log_success "Successfully configured core.hooksPath to .hooks"
     fi
   fi
 
-  echo -e "\n${GREEN}Dev setup completed successfully${NC}"
+  log_success "Dev setup completed successfully"
   if $RESTART_REQUIRED
   then
-    echo -e "${YELLOW}You may need to restart your terminal${NC}"
+    log_warn "You may need to restart your terminal"
   fi
   exit 0
 fi

@@ -78,12 +78,6 @@ setup_mocks() {
   }
   export -f defaults
 
-  # Mock rclone
-  rclone() {
-    echo "MOCKED: rclone $*" >&2
-  }
-  export -f rclone
-
   # Mock Arch/Fedora pkg managers
   pacman() {
     if [[ "$*" == *"-Qs"* ]]; then
@@ -218,6 +212,35 @@ setup_mocks() {
     echo "MOCKED: open $*" >&2
   }
   export -f open
+
+  # Mock confirm_action
+  confirm_action() {
+    # Default to "yes" for tests unless overridden
+    if [[ "$MOCK_CONFIRM_ACTION" == "false" ]]; then
+        return 1
+    fi
+    return 0
+  }
+  export -f confirm_action
+
+  # Mock prompt_input
+  prompt_input() {
+    # Return 2nd arg (default value) unless overridden
+    local prompt="$1"
+    local default="$2"
+    if [[ -n "$MOCK_PROMPT_INPUT_VALUE" ]]; then
+        echo "$MOCK_PROMPT_INPUT_VALUE"
+    else
+        echo "$default"
+    fi
+  }
+  export -f prompt_input
+
+  # Mock wait_for_enter
+  wait_for_enter() {
+    return 0
+  }
+  export -f wait_for_enter
 }
 
 # Common colors for scripts

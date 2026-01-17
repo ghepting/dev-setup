@@ -228,25 +228,6 @@ setup() {
   echo "$output" | grep -q "Installing nvm"
 }
 
-@test "Google Drive: configures rclone on Debian" {
-  echo "google_drive=true" > "$CONFIG_FILE"
-
-  export PLATFORM="Debian"
-  export MOCKED_NOT_FOUND="rclone"
-  run setup_google_drive
-  echo "$output" | grep -q "Installing rclone"
-}
-
-@test "Google Drive: installs app on macOS" {
-  echo "google_drive=true" > "$CONFIG_FILE"
-
-  export PLATFORM="macOS"
-  export MOCKED_APP_INSTALLED=""         # Not installed
-  export MOCKED_NOT_FOUND="google-drive" # Not in PATH
-  run setup_google_drive
-  echo "$output" | grep -q "Google Drive for macOS"
-}
-
 @test "CLI Tools: Gemini, Claude, and Postman installation" {
   load_lib "lib/modules/gemini.sh"
   load_lib "lib/modules/claude.sh"

@@ -4,12 +4,12 @@ setup_docker() {
   # check if docker is installed/running
   if ! command -v docker &> /dev/null; then
     if is_macos; then
-      echo -e "${YELLOW}Installing Docker Desktop...${NC}"
+      log_warn "Installing Docker Desktop..."
       brew install --cask docker
     elif is_linux; then
-      echo -e "${YELLOW}Installing Docker...${NC}"
+      log_warn "Installing Docker..."
       if is_debian; then
-        echo -e "${YELLOW}Setting up Docker CE repository for Debian...${NC}"
+        log_warn "Setting up Docker CE repository for Debian..."
         sudo apt-get update
         sudo apt-get install -y ca-certificates curl
         sudo install -m 0755 -d /etc/apt/keyrings
@@ -33,7 +33,7 @@ setup_docker() {
         install_pkg "docker"
         install_pkg "docker-compose"
       elif is_fedora; then
-        echo -e "${YELLOW}Setting up Docker CE repository for Fedora...${NC}"
+        log_warn "Setting up Docker CE repository for Fedora..."
         sudo dnf -y install dnf-plugins-core
         sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
 
@@ -44,25 +44,25 @@ setup_docker() {
         install_pkg "docker-compose-plugin"
       fi
       sudo usermod -aG docker "$(whoami)"
-      echo -e "${YELLOW}Note: You may need to logout and login for docker group changes to take effect.${NC}"
+      log_warn "Note: You may need to logout and login for docker group changes to take effect."
     fi
   fi
 
   if is_macos; then
-    echo -e "${BLUE}Using $(docker --version)${NC}"
-    echo -e "${BLUE}Using $(docker compose version)${NC}"
+    log_status "Using $(docker --version)"
+    log_status "Using $(docker compose version)"
 
     # run command "docker info" and grep for "failed to connect to the docker API"
     if ! docker info &> /dev/null; then
-      echo -e "${YELLOW}Starting Docker daemon...${NC}"
+      log_warn "Starting Docker daemon..."
       open /Applications/Docker.app
-      read "?Press [Enter] after logging in to Docker..."
+      wait_for_enter "Press [Enter] after logging in to Docker..."
     fi
   elif is_linux; then
     # Only try to start via systemctl if systemd is running (not in a container)
     if [ -d /run/systemd/system ]; then
       sudo systemctl start docker
     fi
-    echo -e "${BLUE}Using $(docker --version)${NC}"
+    log_status "Using $(docker --version)"
   fi
 }

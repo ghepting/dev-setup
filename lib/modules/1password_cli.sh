@@ -3,7 +3,7 @@
 setup_1password_cli() {
   # ensure 1Password CLI is installed
   if ! command -v op &> /dev/null; then
-    echo -e "${WHITE}Installing 1Password CLI...${NC}"
+    log_info "Installing 1Password CLI..."
     if is_macos; then
       brew install --cask 1password-cli
     elif is_debian; then
@@ -28,7 +28,7 @@ setup_1password_cli() {
     if is_macos && [ -d "/Applications/1Password.app" ]; then
       open /Applications/1Password.app
     fi
-    echo -e "${WHITE}Please log in to 1Password and enable the 1Password CLI integration in the Developer settings...${NC}"
+    log_info "Please log in to 1Password and enable the 1Password CLI integration in the Developer settings..."
     echo -n "Press [Enter] after logging in to 1Password and enabling the 1Password CLI integration..."
     read
     op signin
@@ -36,7 +36,7 @@ setup_1password_cli() {
 
   # Verify login was successful
   if ! op whoami &> /dev/null; then
-    echo -e "${RED}Failed to sign in to 1Password CLI.${NC}"
+    log_error "Failed to sign in to 1Password CLI."
     exit 1
   fi
 }

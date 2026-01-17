@@ -7,7 +7,6 @@ brew "pyenv"
 
 # terminal
 cask "iterm2"
-cask "ghostty"
 brew "tmux"
 brew "reattach-to-user-namespace" # tmux clipboard integration with y (yank)
 brew "direnv"
@@ -25,11 +24,11 @@ cask "linear-linear"
 cask "font-jetbrains-mono"
 
 # other
-cask "google-drive" # required for symlinked dotfiles
-cask "google-chrome"
 cask "1password" # required for ssh key management
+cask "google-chrome"
 brew "mas" # mac app store CLI
 brew "duti" # file association
+cask "google-drive"
 cask "slack"
 
 # security keys / 2FA

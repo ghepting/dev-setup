@@ -13,7 +13,7 @@ install_pyenv_and_python() {
     fi
     RESTART_REQUIRED=true
   else
-    echo -e "${BLUE}Using $(pyenv --version)${NC}"
+    log_status "Using $(pyenv --version)"
   fi
 
   # run 'eval "$(pyenv init -)"' to use pyenv commands in the current script session
@@ -28,7 +28,7 @@ install_pyenv_and_python() {
     echo 'export PYENV_ROOT="$HOME/.pyenv"' >> "$ZSHRC_FILE"
     echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> "$ZSHRC_FILE"
     echo 'eval "$(pyenv init - zsh)"' >> "$ZSHRC_FILE"
-    echo -e "${GREEN}Added pyenv init to .zshrc${NC}"
+    log_success "Added pyenv init to .zshrc"
     RESTART_REQUIRED=true
   fi
 
@@ -37,11 +37,11 @@ install_pyenv_and_python() {
 
   # check if the desired version is already installed by pyenv
   if pyenv versions --bare | grep -q "^$PYTHON_VERSION$"; then
-    echo -e "${BLUE}Using python $PYTHON_VERSION${NC}"
+    log_status "Using python $PYTHON_VERSION"
   else
-    echo -e "${WHITE}Installing python $PYTHON_VERSION...${NC}"
+    log_info "Installing python $PYTHON_VERSION..."
     if pyenv install $PYTHON_VERSION &> /dev/null; then
-      echo -e "${GREEN}Successfully installed python $PYTHON_VERSION${NC}"
+      log_success "Successfully installed python $PYTHON_VERSION"
       RESTART_REQUIRED=true
       # set global default and report
       pyenv global "$PYTHON_VERSION" &> /dev/null
@@ -50,9 +50,9 @@ install_pyenv_and_python() {
       PYTHON_VERSION=$($PYTHON_EXECUTABLE --version 2> /dev/null | awk '{print $2}')
       PIP_VERSION=$($PYTHON_EXECUTABLE -m pip --version 2> /dev/null | awk '{print $2}')
 
-      echo -e "${BLUE}Default python set to $PYTHON_VERSION / pip $PIP_VERSION${NC}"
+      log_status "Default python set to $PYTHON_VERSION / pip $PIP_VERSION"
     else
-      echo -e "${RED}Failed to install python $PYTHON_VERSION${NC}"
+      log_error "Failed to install python $PYTHON_VERSION"
       exit 1
     fi
   fi

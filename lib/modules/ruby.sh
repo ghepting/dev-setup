@@ -14,7 +14,7 @@ install_rbenv_and_ruby() {
     fi
     RESTART_REQUIRED=true
   else
-    echo -e "${BLUE}Using $(rbenv --version)${NC}"
+    log_status "Using $(rbenv --version)"
   fi
 
   # add rbenv init to .zshrc
@@ -22,22 +22,22 @@ install_rbenv_and_ruby() {
     echo '' >> "$ZSHRC_FILE"
     echo '# rbenv' >> "$ZSHRC_FILE"
     echo 'eval "$(rbenv init -)"' >> "$ZSHRC_FILE"
-    echo -e "${GREEN}Added rbenv init to .zshrc${NC}"
+    log_success "Added rbenv init to .zshrc"
     RESTART_REQUIRED=true
   fi
 
   # install ruby
   RUBY_VERSION=$(cat .ruby-version)
   if [[ "$(rbenv version-name)" == "$RUBY_VERSION" ]] &> /dev/null; then
-    echo -e "${BLUE}Using ruby $(rbenv version-name)${NC}"
+    log_status "Using ruby $(rbenv version-name)"
 
   else
-    echo -e "${WHITE}Installing ruby $RUBY_VERSION...${NC}"
+    log_info "Installing ruby $RUBY_VERSION..."
     if rbenv install $RUBY_VERSION -s && rbenv global $RUBY_VERSION &> /dev/null; then
-      echo -e "${GREEN}Successfully installed ruby $RUBY_VERSION via rbenv${NC}"
+      log_success "Successfully installed ruby $RUBY_VERSION via rbenv"
       RESTART_REQUIRED=true
     else
-      echo -e "${RED}Failed to install ruby $RUBY_VERSION via rbenv${NC}"
+      log_error "Failed to install ruby $RUBY_VERSION via rbenv"
       exit 1
     fi
   fi

@@ -2,7 +2,7 @@
 
 install_claude_code_cli() {
   if command -v claude &> /dev/null; then
-    echo -e "${BLUE}Using claude $(claude --version)${NC}"
+    log_status "Using claude $(claude --version)"
   else
     # check if claude is enabled in config file
     if is_enabled "claude_code_cli"; then
@@ -11,10 +11,10 @@ install_claude_code_cli() {
       echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
 
       if command -v claude &> /dev/null; then
-        echo -e "${GREEN}Successfully installed claude $(claude --version)${NC}"
+        log_success "Successfully installed claude $(claude --version)"
         RESTART_REQUIRED=true
       else
-        echo -e "${RED}Failed to install claude${NC}"
+        log_error "Failed to install claude"
         exit 1
       fi
     fi

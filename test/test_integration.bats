@@ -35,33 +35,71 @@ setup() {
 
   # Helper for smoke tests to skip interactive config
   patch_smoke_tests() {
-    # Remove all possible 'read' calls globally for smoke tests
-    find "$PROJECT_DIR" -name "*.sh" -exec sed -i.bak '/^[[:space:]]*read/d' {} +
-    sed -i.bak '/^[[:space:]]*read/d' "$PROJECT_DIR/bin/setup"
+    # For smoke tests, we want confirm_action to always return true (or false based on need) automatically
+    # and prompt_input to return default.
+    # Since we can't easily patch functions dynamically in the sourced file without complexity,
+    # let's modify utils.sh directly in the project dir to non-interactive versions.
 
-    # Ensure any logic that depends on REPLY gets a default
-    sed -i.bak 's/read -r REPLY/REPLY="y"/g' "$PROJECT_DIR/bin/setup"
+    cat <<EOF >> "$PROJECT_DIR/lib/core/utils.sh"
+confirm_action() {
+  local prompt="\$1"
+  local default="\${2:-n}"
+  # For smoke tests, always return true if default is y
+  [[ "\$default" == "y" ]]
+}
+
+prompt_input() {
+  local prompt="\$1"
+  local default="\$2"
+  echo "\$default"
+}
+
+wait_for_enter() {
+  return 0
+}
+EOF
   }
 
   patch_interactive_only() {
-    # Remove all read calls except the ones in bin/setup's prompt_config function
-    # We use a regex that matches shell builtin 'read' at start of line (with spaces)
-    # followed by a space, ?, or end of line.
-    local read_pattern='/^[[:space:]]*read\([[:space:]]\|$\|?\)/d'
+    # Remove reads from bin/setup outside of prompt_config if any remain (none should with new refactor)
+    # But now configuration happens via prompt_input/confirm_action in utils.sh.
+    # We WANT utils.sh to retain its read logic so we can pipe input to it.
 
-    # First, patch all library files aggressively but safely
-    # Note: \v or extension of expressions might not be portable, so we use simpler regex
-    find "$PROJECT_DIR/lib" -name "*.sh" -exec sed -i.bak -e '/^[[:space:]]*read /d' -e '/^[[:space:]]*read$/d' -e '/^[[:space:]]*read?/d' {} +
+    # However, patch_interactive_only isn't really needed if we trust utils.sh reads.
+    # The original logic removed "pause" type reads.
+    # Let's just ensure we DON'T patch utils.sh.
 
-    # In bin/setup, only patch read calls outside prompt_config (lines 58-112)
-    sed -i.bak -e '1,57{/^[[:space:]]*read /d; /^[[:space:]]*read$/d; /^[[:space:]]*read?/d;}' \
-      -e '113,999{/^[[:space:]]*read /d; /^[[:space:]]*read$/d; /^[[:space:]]*read?/d;}' \
-      "$PROJECT_DIR/bin/setup"
+    # We might still want to patch other modules if they have stray reads (though we refactored them).
+    # Let's exclude utils.sh from the find command.
+    find "$PROJECT_DIR/lib" -name "*.sh" ! -name "utils.sh" -exec sed -i.bak -e '/^[[:space:]]*read /d' -e '/^[[:space:]]*read$/d' -e '/^[[:space:]]*read?/d' {} +
+
+    # Inject line-based confirm_action for test stability
+    cat <<EOF >> "$PROJECT_DIR/lib/core/utils.sh"
+confirm_action() {
+  local prompt="\$1"
+  local default="\${2:-n}"
+  # Read line from stdin for deterministic testing
+  local reply
+  if ! read -r reply; then
+     # End of input
+     return 1
+  fi
+
+  if [[ "\$default" == "y" ]]; then
+     [[ "\$reply" =~ ^[Yy]$ || -z "\$reply" ]]
+  else
+     [[ "\$reply" =~ ^[Yy]$ ]]
+  fi
+}
+
+wait_for_enter() {
+  return 0
+}
+EOF
   }
 
-  # PATCH: Remove host-specific Homebrew/Ghostty path evals
+  # PATCH: Remove host-specific Homebrew path evals
   sed -i.bak '/shellenv/d' "$PROJECT_DIR/lib/modules/brew.sh"
-  sed -i.bak '/ghostty/d' "$PROJECT_DIR/bin/setup"
   sed -i.bak '/iterm/d' "$PROJECT_DIR/bin/setup"
   sed -i.bak '/homebrew/d' "$PROJECT_DIR/bin/setup"
   sed -i.bak '/\${EDITOR:-vim}/d' "$PROJECT_DIR/bin/setup"
@@ -77,16 +115,21 @@ setup() {
   export MOCK_UNAME="Darwin"
 
   # Explicitly disable all to avoid missing mocks
-  echo "google_drive=false" > "$CONFIG_FILE"
   echo "dotfiles=false" >> "$CONFIG_FILE"
   echo "editor=false" >> "$CONFIG_FILE"
-  echo "op=false" >> "$CONFIG_FILE"
+  echo "op_cli=false" >> "$CONFIG_FILE"
+  echo "1password=false" >> "$CONFIG_FILE"
+  echo "1password_ssh=false" >> "$CONFIG_FILE"
   echo "app_store=false" >> "$CONFIG_FILE"
   echo "docker=false" >> "$CONFIG_FILE"
   echo "ruby=false" >> "$CONFIG_FILE"
   echo "python=false" >> "$CONFIG_FILE"
   echo "node=false" >> "$CONFIG_FILE"
   echo "vim_tmux=false" >> "$CONFIG_FILE"
+  echo "yubikey=false" >> "$CONFIG_FILE"
+  echo "gemini_cli=false" >> "$CONFIG_FILE"
+  echo "claude_code_cli=false" >> "$CONFIG_FILE"
+  echo "postman_cli=false" >> "$CONFIG_FILE"
 
   cd "$PROJECT_DIR"
   patch_smoke_tests
@@ -99,7 +142,6 @@ setup() {
   export PLATFORM="Debian"
   export MOCK_UNAME="Linux"
 
-  echo "google_drive=false" > "$CONFIG_FILE"
   echo "dotfiles=false" >> "$CONFIG_FILE"
   echo "editor=false" >> "$CONFIG_FILE"
   echo "op=false" >> "$CONFIG_FILE"
@@ -119,7 +161,6 @@ setup() {
   export PLATFORM="Arch"
   export MOCK_UNAME="Linux"
 
-  echo "google_drive=false" > "$CONFIG_FILE"
   echo "dotfiles=false" >> "$CONFIG_FILE"
   echo "editor=false" >> "$CONFIG_FILE"
 
@@ -134,7 +175,6 @@ setup() {
   export PLATFORM="Fedora"
   export MOCK_UNAME="Linux"
 
-  echo "google_drive=false" > "$CONFIG_FILE"
   echo "dotfiles=false" >> "$CONFIG_FILE"
   echo "editor=false" >> "$CONFIG_FILE"
 
@@ -153,23 +193,36 @@ setup() {
     local module=$1
     local expected_text=$2
 
-    # Test TRUE
-    echo "google_drive=false" > "$CONFIG_FILE"
-    echo "editor=false" >> "$CONFIG_FILE"
-    echo "op=false" >> "$CONFIG_FILE"
+    echo "editor=false" > "$CONFIG_FILE"
+    echo "op_cli=false" >> "$CONFIG_FILE"
+    echo "1password=false" >> "$CONFIG_FILE"
+    echo "1password_ssh=false" >> "$CONFIG_FILE"
     echo "app_store=false" >> "$CONFIG_FILE"
+    echo "yubikey=false" >> "$CONFIG_FILE"
+    echo "gemini_cli=false" >> "$CONFIG_FILE"
+    echo "claude_code_cli=false" >> "$CONFIG_FILE"
+    echo "postman_cli=false" >> "$CONFIG_FILE"
     echo "${module}=true" >> "$CONFIG_FILE"
 
     cd "$PROJECT_DIR"
     patch_smoke_tests
     run ./bin/setup
-    [[ "$output" == *"$expected_text"* ]]
+    if [[ "$output" != *"$expected_text"* ]]; then
+      echo "Failed to find '$expected_text' in output:"
+      echo "$output"
+      return 1
+    fi
 
     # Test FALSE
-    echo "google_drive=false" > "$CONFIG_FILE"
-    echo "editor=false" >> "$CONFIG_FILE"
-    echo "op=false" >> "$CONFIG_FILE"
+    echo "editor=false" > "$CONFIG_FILE"
+    echo "op_cli=false" >> "$CONFIG_FILE"
+    echo "1password=false" >> "$CONFIG_FILE"
+    echo "1password_ssh=false" >> "$CONFIG_FILE"
     echo "app_store=false" >> "$CONFIG_FILE"
+    echo "yubikey=false" >> "$CONFIG_FILE"
+    echo "gemini_cli=false" >> "$CONFIG_FILE"
+    echo "claude_code_cli=false" >> "$CONFIG_FILE"
+    echo "postman_cli=false" >> "$CONFIG_FILE"
     echo "${module}=false" >> "$CONFIG_FILE"
 
     run ./bin/setup
@@ -192,15 +245,14 @@ setup() {
 
   # Simulate interaction:
   # 1. Proceed with current configuration? [Y/n]: n
-  # 2. Enable google_drive? ... (default: n): [Enter]
-  # 3. Enable dotfiles? ... (default: y): n
-  # 4. Enable vim_tmux? ... (default: n): [Enter]
-  # 5. Enable editor? ... (default: n): [Enter]
-  # 6. Enable op? ... (default: n): [Enter]
-  # 7. Enable ruby? ... (default: n): [Enter]
-  # 8. Enable python? ... (default: n): y
-  # 9. Enable node? ... (default: n): [Enter]
-  # 10-13. (defaults): [Enter]x4
+  # 2. Enable dotfiles? ... (default: y): n
+  # 3. Enable vim_tmux? ... (default: n): [Enter]
+  # 4. Enable editor? ... (default: n): [Enter]
+  # 5. Enable op? ... (default: n): [Enter]
+  # 6. Enable ruby? ... (default: n): [Enter]
+  # 7. Enable python? ... (default: n): y
+  # 8. Enable node? ... (default: n): [Enter]
+  # 9-12. (defaults): [Enter]x4
 
   # We need to provide exactly enough inputs for the 13 modules + the initial "y"
   # Let's ensure the PLATFORM is available to bin/setup as an env var
@@ -209,7 +261,7 @@ setup() {
   # Run with zsh explicitly to ensure prompt-reading behavior matches reality
   export MOCK_UNAME="Darwin"
   export PLATFORM="macOS"
-  run zsh -c "export PATH=\"$PATH\"; export MOCK_UNAME=\"$MOCK_UNAME\"; export PLATFORM=\"$PLATFORM\"; printf 'n\n\nn\n\n\n\n\n\n\ny\n\n\n\n\n\n' | ./bin/setup"
+  run zsh -c "export PATH=\"$PATH\"; export MOCK_UNAME=\"$MOCK_UNAME\"; export PLATFORM=\"$PLATFORM\"; printf 'n\nn\n\n\n\n\n\n\ny\n\n\n\n\n\n\n' | ./bin/setup"
   if [ "$status" -ne 0 ]; then
     echo "Interactive setup failed with output:"
     echo "$output"
@@ -226,6 +278,20 @@ setup() {
 
   # Ensure config exists
   echo "python=false" > "$CONFIG_FILE"
+  echo "docker=false" >> "$CONFIG_FILE"
+  echo "yubikey=false" >> "$CONFIG_FILE"
+  echo "app_store=false" >> "$CONFIG_FILE"
+  echo "1password=false" >> "$CONFIG_FILE"
+  echo "op_cli=false" >> "$CONFIG_FILE"
+  echo "1password_ssh=false" >> "$CONFIG_FILE"
+  echo "gemini_cli=false" >> "$CONFIG_FILE"
+  echo "claude_code_cli=false" >> "$CONFIG_FILE"
+  echo "postman_cli=false" >> "$CONFIG_FILE"
+  echo "dotfiles=false" >> "$CONFIG_FILE"
+  echo "vim_tmux=false" >> "$CONFIG_FILE"
+  echo "editor=false" >> "$CONFIG_FILE"
+  echo "ruby=false" >> "$CONFIG_FILE"
+  echo "node=false" >> "$CONFIG_FILE"
 
   cd "$PROJECT_DIR"
   patch_smoke_tests

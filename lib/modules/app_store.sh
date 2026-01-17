@@ -13,7 +13,7 @@ install_mas_apps() {
   # ensure mas is installed
   if [[ ! $(command -v mas) ]]
   then
-    echo -e "${WHITE}Installing mas (Mac App Store CLI)...${NC}"
+    log_info "Installing mas (Mac App Store CLI)..."
     brew install mas
   fi
 
@@ -31,7 +31,7 @@ install_mas_apps() {
   missing_apps=()
   for app_id in "${(@k)apps}"
   do
-    if [[ -z "${installed_apps[$app_id]}" ]]
+    if [[ -z "${installed_apps[$app_id]:-}" ]]
     then
       missing_apps+=("$app_id")
     fi
@@ -40,27 +40,27 @@ install_mas_apps() {
   # show header if something needs to be installed
   if (( ${#missing_apps} > 0 ))
   then
-    echo -e "${WHITE}Installing apps from App Store...${NC}"
+    log_info "Installing apps from App Store..."
   fi
 
   # report status and install if missing
   for app_id in "${(@k)apps}"
   do
     local app_name="${apps[$app_id]}"
-    if [[ -n "${installed_apps[$app_id]}" ]]
+    if [[ -n "${installed_apps[$app_id]:-}" ]]
     then
       local version=$(defaults read "/Applications/${app_name}.app/Contents/Info" CFBundleShortVersionString 2>/dev/null || echo "unknown")
-      echo -e "${BLUE}Using ${app_name} ${version}${NC}"
+      log_status "Using ${app_name} ${version}"
     else
       mas install "$app_id"
       local version=$(defaults read "/Applications/${app_name}.app/Contents/Info" CFBundleShortVersionString 2>/dev/null || echo "unknown")
-      echo -e "${GREEN}Installed ${app_name} ${version}${NC}"
+      log_success "Installed ${app_name} ${version}"
     fi
   done
 
   # show footer if something was installed
   if (( ${#missing_apps} > 0 ))
   then
-    echo -e "${GREEN}Installed apps from App Store${NC}"
+    log_success "Installed apps from App Store"
   fi
 }

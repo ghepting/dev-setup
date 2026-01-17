@@ -18,7 +18,7 @@ setup_vim_tmux_config() {
   HEADER_PRINTED=false
   print_header() {
     if [ "$HEADER_PRINTED" = false ]; then
-      echo -e "${WHITE}Configuring Vim and Tmux...${NC}"
+      log_info "Configuring Vim and Tmux..."
       HEADER_PRINTED=true
     fi
   }
@@ -51,7 +51,7 @@ setup_vim_tmux_config() {
         local vim_target="/usr/bin/vim.nox"
         is_fedora && vim_target="/usr/bin/vim"
 
-        echo -e "${WHITE}Configuring vim as default editor...${NC}"
+        log_info "Configuring vim as default editor..."
         if command -v update-alternatives &>/dev/null; then
           sudo update-alternatives --set vi "$vim_target"
           sudo update-alternatives --set vim "$vim_target"
@@ -87,7 +87,7 @@ setup_vim_tmux_config() {
        if [[ "$CURRENT_TARGET" != "$SOURCE_FILE" ]]; then
           # Check if it's pointing to our dotfiles repository
           if [[ -n "$DOTFILES_DIR" && "$CURRENT_TARGET" == "$DOTFILES_DIR"* ]]; then
-            echo -e "${BLUE}Skipping $SOURCE_FILE_BASE as it is already symlinked to dotfiles repo${NC}"
+            log_status "Skipping $SOURCE_FILE_BASE as it is already symlinked to dotfiles repo"
             NEEDS_LINK=false
           else
             NEEDS_LINK=true
@@ -103,13 +103,13 @@ setup_vim_tmux_config() {
       then
         TIMESTAMP=$(date +%Y%m%d_%H%M%S)
         mv "$DEST_FILE" "$DEST_FILE.backup.$TIMESTAMP"
-        echo -e "${GRAY}Backed up existing $DEST_FILE to $DEST_FILE.backup.$TIMESTAMP${NC}"
+        log_info "Backed up existing $DEST_FILE to $DEST_FILE.backup.$TIMESTAMP"
       fi
 
       # Create/Update symlink
       ln -sf "$SOURCE_FILE" "$DEST_FILE"
       RESTART_REQUIRED=true
-      echo -e "${GREEN}Linked $SOURCE_FILE_BASE${NC}"
+      log_success "Linked $SOURCE_FILE_BASE"
     fi
   done
 
@@ -118,7 +118,7 @@ setup_vim_tmux_config() {
   if [[ ! -d "$VUNDLE_DIR" ]]
   then
     print_header
-    echo -e "${WHITE}Installing Vundle...${NC}"
+    log_info "Installing Vundle..."
     git clone https://github.com/VundleVim/Vundle.vim.git "$VUNDLE_DIR"
     RESTART_REQUIRED=true
   fi

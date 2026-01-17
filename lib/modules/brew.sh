@@ -2,7 +2,7 @@
 
 install_homebrew() {
   if ! command -v brew &>/dev/null; then
-    echo -e "${WHITE}Installing Homebrew...${NC}"
+    log_info "Installing Homebrew..."
     /usr/bin/env zsh -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     RESTART_REQUIRED=true
 
@@ -13,10 +13,10 @@ install_homebrew() {
       eval "$(/usr/local/bin/brew shellenv)"
     fi
   else
-    echo -e "${WHITE}Updating Homebrew...${NC}"
+    log_info "Updating Homebrew..."
     brew update &>/dev/null
   fi
-  echo -e "${BLUE}Using Homebrew $(brew --version)${NC}"
+  log_status "Using Homebrew $(brew --version)"
 }
 
 install_homebrew_path() {
@@ -29,37 +29,23 @@ install_homebrew_path() {
     echo '' >>"$ZSHRC_FILE"
     echo '# homebrew' >>"$ZSHRC_FILE"
     echo "$BREW_PREFIX_CMD" >>"$ZSHRC_FILE"
-    echo -e "${GREEN}Homebrew PATH line added to $ZSHRC_FILE.${NC}"
-    RESTART_REQUIRED=true
-  fi
-}
-
-install_ghostty_path() {
-  # add ghostty path to ~/.zshrc
-  GHOSTTY_PATH_CMD='export PATH=$PATH:/Applications/Ghostty.app/Contents/MacOS'
-  if ! grep -qF "$GHOSTTY_PATH_CMD" "$ZSHRC_FILE"; then
-    echo '' >>"$ZSHRC_FILE"
-    echo '# ghostty' >>"$ZSHRC_FILE"
-    echo "$GHOSTTY_PATH_CMD" >>"$ZSHRC_FILE"
-    echo -e "${GREEN}Ghostty PATH line added to $ZSHRC_FILE.${NC}"
+    log_success "Homebrew PATH line added to $ZSHRC_FILE."
     RESTART_REQUIRED=true
   fi
 }
 
 install_homebrew_formulae() {
   # install homebrew packages
-  echo -e "${WHITE}Installing Homebrew formulae...${NC}"
+  log_info "Installing Homebrew formulae..."
   brew bundle --upgrade -q
 
-  echo -e "${BLUE}Using iterm2 $(defaults read /Applications/iTerm.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
-  echo -e "${BLUE}Using ghostty $(defaults read /Applications/Ghostty.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
-  echo -e "${BLUE}Using $(tmux -V)${NC}"
-  echo -e "${BLUE}Using vim $(vim --version | head -n 1 | sed -E 's/.*([0-9]+\.[0-9]+).*/\1/')${NC}"
-  echo -e "${BLUE}Using direnv $(direnv --version)${NC}"
-  echo -e "${BLUE}Using Antigravity $(agy -v 2>/dev/null | grep -E --color=no '^[0-9]+\.[0-9]+\.[0-9]+$')${NC}"
-  echo -e "${BLUE}Using Postman $(defaults read /Applications/Postman.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
-  echo -e "${BLUE}Using $(ngrok --version)${NC}"
-  echo -e "${BLUE}Using Google Drive $(defaults read /Applications/Google\ Drive.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
-  echo -e "${BLUE}Using Google Chrome $(defaults read /Applications/Google\ Chrome.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
-  echo -e "${BLUE}Using Linear $(defaults read /Applications/Linear.app/Contents/Info.plist CFBundleShortVersionString)${NC}"
+  log_status "Using iterm2 $(defaults read /Applications/iTerm.app/Contents/Info.plist CFBundleShortVersionString)"
+  log_status "Using $(tmux -V)"
+  log_status "Using vim $(vim --version | head -n 1 | sed -E 's/.*([0-9]+\.[0-9]+).*/\1/')"
+  log_status "Using direnv $(direnv --version)"
+  log_status "Using Antigravity $(agy -v 2>/dev/null | grep -E --color=no '^[0-9]+\.[0-9]+\.[0-9]+$')"
+  log_status "Using Postman $(defaults read /Applications/Postman.app/Contents/Info.plist CFBundleShortVersionString)"
+  log_status "Using $(ngrok --version)"
+  log_status "Using Google Chrome $(defaults read /Applications/Google\ Chrome.app/Contents/Info.plist CFBundleShortVersionString)"
+  log_status "Using Linear $(defaults read /Applications/Linear.app/Contents/Info.plist CFBundleShortVersionString)"
 }

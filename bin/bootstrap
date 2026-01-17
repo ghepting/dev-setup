@@ -6,7 +6,7 @@
 source "./lib/core/vars.sh"
 source "./lib/core/utils.sh"
 
-echo -e "${WHITE}Bootstrapping dev-setup repository...${NC}"
+log_info "Bootstrapping dev-setup repository..."
 
 # Install core dev dependencies
 # - bats-core: test runner
@@ -18,10 +18,10 @@ done
 
 # Ensure hooks are set up
 if [ -d ".git" ]; then
-  echo -e "${WHITE}Configuring git hooks...${NC}"
+  log_info "Configuring git hooks..."
   git config core.hooksPath .hooks
-  echo -e "${GREEN}Git hooks configured to .hooks/${NC}"
+  log_success "Git hooks configured to .hooks"
 fi
 
-echo -e "\n${GREEN}Repository bootstrapped successfully!${NC}"
-echo -e "${YELLOW}You are now ready to contribute to dev-setup.${NC}"
+log_success "Repository bootstrapped successfully!"
+log_info "You are now ready to contribute to dev-setup."

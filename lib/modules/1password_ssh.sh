@@ -5,7 +5,7 @@ setup_1password_ssh() {
 
   # Determine if we should proceed (must have GUI or CLI enabled)
   if ! is_enabled "1password" && ! is_enabled "op_cli"; then
-    echo -e "${GRAY}1Password SSH configuration skipped (requires 1Password GUI or CLI)${NC}"
+    log_info "1Password SSH configuration skipped (requires 1Password GUI or CLI)"
     return
   fi
 
@@ -22,10 +22,10 @@ setup_1password_ssh() {
   if is_macos && [ ! -e "$expanded_sock_path" ]; then
     if [ -S "$op_sock_macos" ]; then
       ln -s "$op_sock_macos" "$expanded_sock_path"
-      echo -e "${GREEN}Created symlink $expanded_sock_path -> $op_sock_macos${NC}"
+      log_success "Created symlink $expanded_sock_path -> $op_sock_macos"
     else
-      echo -e "${YELLOW}Warning: 1Password SSH agent socket not found at $op_sock_macos${NC}"
-      echo -e "${GRAY}Symlink $expanded_sock_path not created.${NC}"
+      log_warn "Warning: 1Password SSH agent socket not found at $op_sock_macos"
+      log_info "Symlink $expanded_sock_path not created."
     fi
   fi
 
@@ -45,9 +45,9 @@ setup_1password_ssh() {
       echo "Host *" >>"$SSH_CONFIG_FILE"
     fi
     echo "  IdentityAgent \"$sock_path\"" >>"$SSH_CONFIG_FILE"
-    echo -e "${GREEN}Added 1Password SSH agent to $SSH_CONFIG_FILE${NC}"
+    log_success "Added 1Password SSH agent to $SSH_CONFIG_FILE"
   else
-    echo -e "${BLUE}Using 1Password SSH agent${NC}"
+    log_status "Using 1Password SSH agent"
   fi
 
   # configure environment variable (Idempotent)
@@ -58,7 +58,7 @@ setup_1password_ssh() {
     echo '' >>"$ZSHRC_FILE"
     echo '# 1password' >>"$ZSHRC_FILE"
     echo "$export_cmd" >>"$ZSHRC_FILE"
-    echo -e "${GREEN}Added SSH_AUTH_SOCK export to $ZSHRC_FILE${NC}"
+    log_success "Added SSH_AUTH_SOCK export to $ZSHRC_FILE"
     RESTART_REQUIRED=true
   fi
 
@@ -70,7 +70,7 @@ setup_1password_ssh() {
     touch "$agent_config"
     echo "[[ssh-keys]]" >>"$agent_config"
     echo "vault = \"Development\"" >>"$agent_config"
-    echo -e "${GREEN}Created $agent_config${NC}"
+    log_success "Created $agent_config"
   elif ! grep -q "vault = \"Development\"" "$agent_config"; then
     # replace default vault value with "Development"
     if is_macos; then
@@ -78,8 +78,8 @@ setup_1password_ssh() {
     else
       sed -i 's/vault = "[^"]*"/vault = "Development"/' "$agent_config"
     fi
-    echo -e "${GREEN}Configured $agent_config${NC}"
+    log_success "Configured $agent_config"
   else
-    echo -e "${BLUE}Using 1Password \"Development\" vault${NC}"
+    log_status "Using 1Password \"Development\" vault"
   fi
 }

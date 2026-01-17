@@ -26,23 +26,23 @@ install_pkg() {
   local package=$1
   if is_macos; then
     if ! brew list "$package" &> /dev/null; then
-      echo -e "${WHITE}Installing $package via Homebrew...${NC}"
+      log_info "Installing $package via Homebrew..."
       brew install "$package"
     fi
   elif is_debian; then
     if ! dpkg-query -W -f='${Status}' "$package" 2> /dev/null | grep -q "ok installed"; then
-      echo -e "${WHITE}Installing $package via apt...${NC}"
+      log_info "Installing $package via apt..."
       sudo apt-get update
       sudo apt-get install -y "$package"
     fi
   elif is_arch; then
     if ! pacman -Qs "^$package$" &> /dev/null; then
-      echo -e "${WHITE}Installing $package via pacman...${NC}"
+      log_info "Installing $package via pacman..."
       sudo pacman -S --noconfirm "$package"
     fi
   elif is_fedora; then
     if ! rpm -q "$package" &> /dev/null; then
-      echo -e "${WHITE}Installing $package via dnf...${NC}"
+      log_info "Installing $package via dnf..."
       sudo dnf install -y "$package"
     fi
   fi
@@ -70,7 +70,7 @@ is_enabled() {
     return 1 # GUI IDE setup disabled by default on Linux
     ;;
   *)
-    # For everything else (docker, languages, op_cli, 1password_ssh, google_drive, etc.)
+    # For everything else (docker, languages, op_cli, 1password_ssh, etc.)
     is_macos && return 0 # Enable on Mac
     return 1             # Disable on Linux
     ;;
@@ -91,7 +91,7 @@ set_config_value() {
 }
 
 is_ssh() {
-  [[ -n "$SSH_CONNECTION" || -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]
+  [[ -n "${SSH_CONNECTION:-}" || -n "${SSH_CLIENT:-}" || -n "${SSH_TTY:-}" ]]
 }
 
 check_app() {
@@ -99,61 +99,70 @@ check_app() {
   [ -d "/Applications/${app_name}.app" ]
 }
 
-setup_google_drive() {
-  if ! is_enabled "google_drive"; then
-    return
+# Logging Utilities
+log_info() { echo -e "${GRAY}${NC} $1"; }
+log_status() { echo -e "${BLUE}${NC} $1"; }
+log_success() { echo -e "${GREEN}${NC} $1"; }
+log_warn() { echo -e "${YELLOW}${NC} $1"; }
+log_error() { echo -e "${RED}${NC} $1"; }
+
+# User Interaction
+confirm_action() {
+  local prompt="$1"
+  local default="${2:-n}"
+  local prompt_suffix
+
+  if [[ "$default" == "y" ]]; then
+    prompt_suffix="[Y/n]"
+  else
+    prompt_suffix="[y/N]"
   fi
 
-  local gdrive_type="app"
-  is_linux && gdrive_type="rclone"
+  # Print prompt separately to handle colors/escapes safely across shells
+  echo -n -e "${prompt} ${prompt_suffix} "
 
-  if grep -q "^google_drive_type=rclone$" "$CONFIG_FILE" 2> /dev/null; then
-    gdrive_type="rclone"
-  elif grep -q "^google_drive_type=app$" "$CONFIG_FILE" 2> /dev/null; then
-    gdrive_type="app"
+  local reply
+  if [[ -n "$ZSH_VERSION" ]]; then
+    read -k 1 -r reply
+  else
+    read -n 1 -r reply
+  fi
+  echo
+
+  if [[ "$default" == "y" ]]; then
+     [[ "$reply" =~ ^[Yy]$ || -z "$reply" || "$reply" == $'\n' || "$reply" == $'\r' ]]
+  else
+     [[ "$reply" =~ ^[Yy]$ ]]
+  fi
+}
+
+prompt_input() {
+  local prompt="$1"
+  local default="$2"
+  local reply
+
+  # Print prompt separately
+  if [[ -n "$default" ]]; then
+    echo -n -e "${prompt} (default: $default): "
+  else
+    echo -n -e "${prompt}: "
   fi
 
-  if is_macos && [[ "$gdrive_type" == "app" ]]; then
-    if ! check_app "Google Drive"; then
-      echo -e "${YELLOW}Installing Google Drive for macOS...${NC}"
-      brew install --cask google-drive
-      open /Applications/Google\ Drive.app
-      echo -n "Press [Enter] after logging in to Google Drive..."
-      read
-    fi
-  elif is_linux || [[ "$gdrive_type" == "rclone" ]]; then
-    if ! command -v rclone &> /dev/null; then
-      echo -e "${YELLOW}Installing rclone for Google Drive support...${NC}"
-      install_pkg "rclone"
-    fi
+  if [[ -n "$ZSH_VERSION" ]]; then
+    read -r reply
+  else
+    read -r reply
+  fi
 
-    # Check if a mount directory exists
-    local gdrive_mount="$HOME/Google Drive"
-    if [ ! -d "$gdrive_mount" ]; then
-      mkdir -p "$gdrive_mount"
-    fi
+  echo "${reply:-$default}"
+}
 
-    # Check if it's already mounted (simple check for files)
-    if [ -z "$(ls -A "$gdrive_mount" 2> /dev/null)" ]; then
-      echo -e "${YELLOW}Google Drive is not mounted at $gdrive_mount${NC}"
-      echo -e "${WHITE}Please ensure rclone is configured with a 'gdrive' remote.${NC}"
-      if ! rclone listremotes | grep -q "gdrive:"; then
-        echo -e "${MAGENTA}No 'gdrive' remote found in rclone configuration.${NC}"
-        echo -e "${WHITE}Running 'rclone config' - please create a new remote named 'gdrive' of type google drive.${NC}"
-        rclone config
-      fi
-
-      echo -e "${YELLOW}Attempting to mount Google Drive via rclone...${NC}"
-      # We use --daemon to run it in the background
-      # On macOS, mounting might require macfuse, but let's try the basic mount first
-      if rclone mount gdrive: "$gdrive_mount" --vfs-cache-mode full --daemon; then
-        echo -e "${GREEN}Google Drive mounted successfully at $gdrive_mount${NC}"
-      else
-        echo -e "${RED}Failed to mount Google Drive. Please check rclone configuration.${NC}"
-        if is_macos; then
-          echo -e "${YELLOW}Note: rclone mount on macOS may require macfuse (brew install --cask macfuse).${NC}"
-        fi
-      fi
-    fi
+wait_for_enter() {
+  local prompt="$1"
+  echo -n -e "${prompt}"
+  if [[ -n "$ZSH_VERSION" ]]; then
+    read -r
+  else
+    read -r
   fi
 }
