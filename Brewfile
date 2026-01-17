@@ -31,3 +31,7 @@ cask "1password" # required for ssh key management
 brew "mas" # mac app store CLI
 brew "duti" # file association
 cask "slack"
+
+# security keys / 2FA
+brew "ykman"
+brew "pam-u2f"
