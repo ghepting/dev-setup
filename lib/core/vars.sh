@@ -21,9 +21,12 @@ CONFIG_FILE="${CONFIG_DIR}/dev-setup.conf"
 if [ -f "$CONFIG_FILE" ]; then
   # We grep instead of sourcing to avoid executing arbitrary code
   # but this means we must manually expand variables like $HOME
-  local cfg_dir cfg_repo
   cfg_dir=$(grep "^dotfiles_dir=" "$CONFIG_FILE" | cut -d= -f2 | tr -d '"')
   cfg_repo=$(grep "^dotfiles_repo=" "$CONFIG_FILE" | cut -d= -f2 | tr -d '"')
+
+  # Sanitize: if the value contains prompt text, it's corrupted from a previous buggy run
+  [[ "$cfg_dir" == *"Directory path"* ]] && cfg_dir=""
+  [[ "$cfg_repo" == *"Repository URL"* ]] && cfg_repo=""
 
   if [ -n "$cfg_dir" ]; then
     DOTFILES_DIR="${cfg_dir//\$\{HOME\}/$HOME}"
@@ -38,9 +41,9 @@ if [ -f "$CONFIG_FILE" ]; then
   fi
 fi
 
-# Fallback to defaults
-DOTFILES_DIR=${DOTFILES_DIR:-"${HOME}/dotfiles"}
-DOTFILES_REPO=${DOTFILES_REPO:-"git@github.com:ghepting/dotfiles.git"}
+# Fallback to defaults and export
+export DOTFILES_DIR=${DOTFILES_DIR:-"${HOME}/dotfiles"}
+export DOTFILES_REPO=${DOTFILES_REPO:-"git@github.com:ghepting/dotfiles.git"}
 
 # Platform Detection
 _get_linux_distro() {

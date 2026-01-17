@@ -125,10 +125,16 @@ confirm_action() {
   local reply
   if [[ -n "$ZSH_VERSION" ]]; then
     read -k 1 -r reply
+    # Only print newline if the reply wasn't already a newline
+    if [[ "$reply" != $'\n' && "$reply" != $'\r' ]]; then
+      echo >&2
+    fi
   else
     read -n 1 -r reply
+    if [[ "$reply" != $'\n' && "$reply" != $'\r' ]]; then
+      echo >&2
+    fi
   fi
-  echo >&2
 
   if [[ "$default" == "y" ]]; then
      [[ "$reply" =~ ^[Yy]$ || -z "$reply" || "$reply" == $'\n' || "$reply" == $'\r' ]]
@@ -155,6 +161,7 @@ prompt_input() {
     read -r reply
   fi
 
+  # Return the value to stdout (for capture)
   echo "${reply:-$default}"
 }
 

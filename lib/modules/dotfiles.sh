@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 setup_dotfiles() {
-  log_info "Setting up dotfiles from ${DOTFILES_REPO}..."
+  log_note "Setting up dotfiles from ${DOTFILES_REPO}..."
 
   if [ ! -d "$DOTFILES_DIR" ]; then
     log_status "Cloning dotfiles repository..."
@@ -24,12 +24,14 @@ setup_dotfiles() {
     ".antigravity"
   )
 
+  log_info "Configuring symlinks for dotfiles..."
+
   for target in "${targets[@]}"; do
     local source_path="${DOTFILES_DIR}/${target}"
     local dest_path="$HOME/${target}"
 
     if [ ! -e "$source_path" ]; then
-      log_info "Target ${target} not found in repository, skipping."
+      log_note "Target ${target} not found in repository, skipping."
       continue
     fi
 
@@ -43,14 +45,14 @@ setup_dotfiles() {
 
     if [ -e "$dest_path" ]; then
       if ! confirm_action "Target ${dest_path} already exists. Replace it?" "n"; then
-        log_info "Skipping ${dest_path}"
+        log_note "Skipped ${dest_path}"
         continue
       fi
 
       if [ -d "$dest_path" ] && [ ! -L "$dest_path" ]; then
         local backup="$dest_path.backup.$(date +%Y%m%d_%H%M%S)"
         mv "$dest_path" "$backup"
-        log_info "Backed up existing directory to $(basename "$backup")"
+        log_note "Backed up existing directory to $(basename "$backup")"
       else
         rm -rf "$dest_path"
       fi
@@ -64,9 +66,15 @@ setup_dotfiles() {
   local wrapper_source="${DOTFILES_DIR}/.git-ssh-sign-wrapper"
   local wrapper_dest="$HOME/.local/bin/git-ssh-sign-wrapper"
 
-  mkdir -p "$HOME/.local/bin"
-  ln -sf "$wrapper_source" "$wrapper_dest"
-  log_success "${wrapper_dest} symlinked to repository .git-ssh-sign-wrapper"
+  if [ -f "$wrapper_source" ]; then
+    mkdir -p "$HOME/.local/bin"
+    if [ -L "$wrapper_dest" ] && [[ "$(readlink "$wrapper_dest")" == "$wrapper_source" ]]; then
+      log_status "Using repository target .git-ssh-sign-wrapper"
+    else
+      ln -sf "$wrapper_source" "$wrapper_dest"
+      log_success "${wrapper_dest} symlinked to ${wrapper_source}"
+    fi
+  fi
 }
 
 symlink_antigravity_config() {

@@ -54,12 +54,11 @@ prompt_config() {
   done
 
   if confirm_action "\n${YELLOW}Proceed with current configuration?${NC}" "y"; then
-    log_info "Using current configuration."
-    log_info "----------------------------"
+    log_status "Using current configuration."
     return
   fi
 
-  log_info "Interactive Configuration (press Enter to keep default):"
+  log_status "Interactive Configuration (press Enter to keep default):"
   for module in "${modules[@]}"; do
     local prompt_default="n"
     is_enabled "$module" && prompt_default="y"
@@ -73,6 +72,7 @@ prompt_config() {
 
           REPO_REPLY=$(prompt_input "    Repository URL" "$current_repo")
           set_config_value "dotfiles_repo" "$REPO_REPLY"
+          DOTFILES_REPO="$REPO_REPLY"
 
           current_dir=$(grep "^dotfiles_dir=" "$CONFIG_FILE" | cut -d= -f2 | tr -d '"')
           current_dir=${current_dir:-$DOTFILES_DIR}
@@ -81,13 +81,13 @@ prompt_config() {
           # Resolve ~ if present
           DIR_REPLY="${DIR_REPLY/#\~/$HOME}"
           set_config_value "dotfiles_dir" "$DIR_REPLY"
+          DOTFILES_DIR="$DIR_REPLY"
         fi
     else
         set_config_value "$module" "false"
     fi
   done
   log_success "Configuration updated."
-  log_info "----------------------------"
 }
 
 # Handle execution
