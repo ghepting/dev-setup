@@ -57,7 +57,7 @@ setup_dotfiles() {
     fi
 
     ln -sf "$source_path" "$dest_path"
-    log_success "${dest_path} symlinked to repository ${target}"
+    log_success "${dest_path} symlinked to ${source_path}"
   done
 
   # Special handling for git signing wrapper
