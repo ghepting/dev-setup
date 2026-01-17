@@ -11,7 +11,7 @@ for lib in ./lib/modules/*.sh; do
   source "$lib"
 done
 
-log_info "Detected platform: ${PLATFORM}"
+log_success "Detected platform: ${PLATFORM}"
 
 # create config directory if it doesn't exist
 if [ ! -d "$CONFIG_DIR" ]
@@ -27,11 +27,8 @@ then
 fi
 
 prompt_config() {
-  log_info "--- Configuration Review ---"
-  log_info "The setup will proceed with defaults based on your platform ($PLATFORM)."
-  log_info "Config path: $CONFIG_FILE"
-
-  log_info "Current Toggles:"
+  log_info "The setup will proceed with configuration you provide, or defaults based on your platform ($PLATFORM)."
+  log_note "Current config ($CONFIG_FILE):"
   local modules=(
     "dotfiles"
     "vim_tmux"

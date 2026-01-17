@@ -100,11 +100,12 @@ check_app() {
 }
 
 # Logging Utilities
-log_info() { echo -e "${GRAY}${NC} $1"; }
-log_status() { echo -e "${BLUE}${NC} $1"; }
-log_success() { echo -e "${GREEN}${NC} $1"; }
-log_warn() { echo -e "${YELLOW}${NC} $1"; }
-log_error() { echo -e "${RED}${NC} $1"; }
+log_note() { echo -e "${GRAY}$1${NC}" >&2; }
+log_info() { echo -e "${WHITE}$1${NC}" >&2; }
+log_status() { echo -e "${BLUE}$1${NC}" >&2; }
+log_success() { echo -e "${GREEN}$1${NC}" >&2; }
+log_warn() { echo -e "${YELLOW}$1${NC}" >&2; }
+log_error() { echo -e "${RED}$1${NC}" >&2; }
 
 # User Interaction
 confirm_action() {
@@ -118,8 +119,8 @@ confirm_action() {
     prompt_suffix="[y/N]"
   fi
 
-  # Print prompt separately to handle colors/escapes safely across shells
-  echo -n -e "${prompt} ${prompt_suffix} "
+  # Print prompt to stderr to handle capture cases (e.g. $(prompt_input ...))
+  echo -n -e "${prompt} ${prompt_suffix} " >&2
 
   local reply
   if [[ -n "$ZSH_VERSION" ]]; then
@@ -127,7 +128,7 @@ confirm_action() {
   else
     read -n 1 -r reply
   fi
-  echo
+  echo >&2
 
   if [[ "$default" == "y" ]]; then
      [[ "$reply" =~ ^[Yy]$ || -z "$reply" || "$reply" == $'\n' || "$reply" == $'\r' ]]
@@ -141,11 +142,11 @@ prompt_input() {
   local default="$2"
   local reply
 
-  # Print prompt separately
+  # Print prompt to stderr
   if [[ -n "$default" ]]; then
-    echo -n -e "${prompt} (default: $default): "
+    echo -n -e "${prompt} (default: $default): " >&2
   else
-    echo -n -e "${prompt}: "
+    echo -n -e "${prompt}: " >&2
   fi
 
   if [[ -n "$ZSH_VERSION" ]]; then
@@ -159,7 +160,7 @@ prompt_input() {
 
 wait_for_enter() {
   local prompt="$1"
-  echo -n -e "${prompt}"
+  echo -n -e "${prompt}" >&2
   if [[ -n "$ZSH_VERSION" ]]; then
     read -r
   else
