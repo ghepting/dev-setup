@@ -12,7 +12,7 @@ setup() {
   # Enable only a subset for smoke test to keep it relatively fast but real
   echo "dotfiles=false" >> "$CONFIG_FILE"
   echo "editor=false" >> "$CONFIG_FILE"
-  echo "op_cli=false" >> "$CONFIG_FILE"
+  echo "1password_cli=false" >> "$CONFIG_FILE"
   echo "1password=false" >> "$CONFIG_FILE"
   echo "1password_ssh=false" >> "$CONFIG_FILE"
   echo "app_store=false" >> "$CONFIG_FILE"

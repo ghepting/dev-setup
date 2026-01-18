@@ -34,7 +34,7 @@ prompt_config() {
     "vim_tmux"
     "editor"
     "1password_gui"
-    "op_cli"
+    "1password_cli"
     "1password_ssh"
     "ruby"
     "python"

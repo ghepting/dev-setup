@@ -70,7 +70,7 @@ is_enabled() {
     return 1 # GUI IDE setup disabled by default on Linux
     ;;
   *)
-    # For everything else (docker, languages, op_cli, 1password_ssh, etc.)
+    # For everything else (docker, languages, 1password_cli, 1password_ssh, etc.)
     is_macos && return 0 # Enable on Mac
     return 1             # Disable on Linux
     ;;

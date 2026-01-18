@@ -22,6 +22,43 @@ setup_1password() {
     else
       log_status "1Password GUI is already installed."
     fi
+  elif is_fedora; then
+    if ! rpm -q "1password" &> /dev/null; then
+      log_info "Installing 1Password GUI for Fedora..."
+      # Import the 1Password key
+      sudo rpm --import https://downloads.1password.com/linux/keys/1password.asc
+
+      # Add the 1Password repo (DNF uses yum.repos.d)
+      sudo sh -c 'echo -e "[1password]\nname=1Password Stable Channel\nbaseurl=https://downloads.1password.com/linux/rpm/stable/$basearch\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=\"https://downloads.1password.com/linux/keys/1password.asc\"" > /etc/yum.repos.d/1password.repo'
+
+      # Install
+      sudo dnf install -y 1password
+    else
+       log_status "1Password GUI is already installed."
+    fi
+  elif is_arch; then
+    if ! pacman -Qi 1password &> /dev/null; then
+      log_info "Installing 1Password GUI for Arch (via AUR)..."
+
+      # Import key
+      curl -sS https://downloads.1password.com/linux/keys/1password.asc | gpg --import
+
+      # Install from AUR
+      local tmp_dir
+      tmp_dir=$(mktemp -d)
+      pushd "$tmp_dir" > /dev/null || return 1
+
+      if git clone https://aur.archlinux.org/1password.git .; then
+        makepkg -si --noconfirm
+      else
+        log_error "Failed to clone 1password AUR repo"
+      fi
+
+      popd > /dev/null || return 1
+      rm -rf "$tmp_dir"
+    else
+      log_status "1Password GUI is already installed."
+    fi
   else
     log_warn "1Password GUI installation not yet supported on this Linux distribution."
   fi
