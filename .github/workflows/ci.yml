@@ -40,7 +40,20 @@ jobs:
         run: ${{ matrix.install_cmd }}
 
       - name: Run Tests
-        run: bats test/
+        # Run unit tests
+        run: |
+          bats test/test_*.bats
+
+          # Run integration tests
+          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+             bats test/integration_macos.bats
+          elif [[ "${{ matrix.container }}" == "debian:latest" ]]; then
+             bats test/integration_debian.bats
+          elif [[ "${{ matrix.container }}" == "archlinux:latest" ]]; then
+             bats test/integration_arch.bats
+          elif [[ "${{ matrix.container }}" == "fedora:latest" ]]; then
+             bats test/integration_fedora.bats
+          fi
 
   release-please:
     runs-on: ubuntu-latest

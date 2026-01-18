@@ -131,10 +131,16 @@ confirm_action() {
 
   local reply
   if [[ -n "$ZSH_VERSION" ]]; then
-    read -k 1 -r reply
-    # Only print newline if the reply wasn't already a newline
-    if [[ "$reply" != $'\n' && "$reply" != $'\r' ]]; then
-      echo >&2
+    if [[ -t 0 ]]; then
+      # Interactive: read single key
+      read -k 1 -r reply
+      # Only print newline if the reply wasn't already a newline
+      if [[ "$reply" != $'\n' && "$reply" != $'\r' ]]; then
+        echo >&2
+      fi
+    else
+      # Non-interactive (pipe): read line
+      read -r reply
     fi
   else
     read -n 1 -r reply

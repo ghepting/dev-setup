@@ -18,28 +18,73 @@ usage() {
     echo "  $0 debian          # Build and run on Debian"
     echo "  $0 all             # Test all platforms"
     echo "  $0 debian shell    # Start interactive shell"
+    echo "  $0 debian test     # Run bats tests inside container"
 }
 
 build_and_run() {
     local platform=$1
     local mode=${2:-run}
+    local container_name="dev-setup-${platform}"
 
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "Building dev-setup-${platform}..."
+    echo "Building ${container_name}..."
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-    docker build -t "dev-setup-${platform}" -f "test/Dockerfile.${platform}" .
+    docker build -t "${container_name}" -f "test/Dockerfile.${platform}" .
+
+    # Create a volume for persistent home directory if it doesn't exist
+    local volume_name="${container_name}-home"
+    docker volume create "${volume_name}" >/dev/null
+
+    # Pre-populate .zshrc in the volume to prevent zsh-newuser-install prompt
+    # running a momentary container to touch the file in the shared volume
+    docker run --rm -v "${volume_name}:/home/tester" "${container_name}" touch /home/tester/.zshrc
+
+    local common_args=(
+        --rm
+        -it
+        -v "$(pwd):/workspace"
+        -v "${volume_name}:/home/tester"
+        "${container_name}"
+    )
 
     if [[ "$mode" == "shell" ]]; then
         echo ""
         echo "Starting interactive shell in ${platform} container..."
-        docker run --rm -it "dev-setup-${platform}" /bin/bash
+        docker run "${common_args[@]}" /bin/zsh
+    elif [[ "$mode" == "test" ]]; then
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "Running Bats tests on ${platform}..."
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        # Run specific platform test file
+        docker run -e CI=true "${common_args[@]}" bats "test/integration_${platform}.bats"
+    elif [[ "$mode" == "debug" ]]; then
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "Debugging setup on ${platform}..."
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        # Pre-configure to match the failing test case
+        # We need to run this in a separate container first to modify the persistent volume
+        docker run --rm -v "${volume_name}:/home/tester" "${container_name}" \
+            /bin/zsh -c "mkdir -p ~/.config && \
+                         cat > ~/.config/dev-setup.conf <<EOF
+dotfiles=false
+editor=false
+ruby=false
+python=false
+docker=false
+EOF"
+
+        # Run setup exactly as the test does
+        docker run -e CI=true "${common_args[@]}" /bin/zsh -c "printf 'y\n' | ./bin/setup"
     else
         echo ""
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo "Running setup on ${platform}..."
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        docker run --rm -it "dev-setup-${platform}"
+        docker run "${common_args[@]}"
     fi
 }
 

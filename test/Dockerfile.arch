@@ -8,7 +8,8 @@ RUN pacman -Syu --noconfirm && \
     curl \
     sudo \
     zsh \
-    vim
+    vim \
+    bats
 
 # Create a non-root user for testing
 RUN useradd -m -s /bin/zsh tester && \
@@ -21,6 +22,9 @@ RUN chown -R tester:tester /workspace
 
 # Switch to test user
 USER tester
+
+# Prevent zsh new user prompt
+RUN touch ~/.zshrc
 
 # Set environment variables
 ENV HOME=/home/tester
