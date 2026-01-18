@@ -33,7 +33,7 @@ prompt_config() {
     "dotfiles"
     "vim_tmux"
     "editor"
-    "1password"
+    "1password_gui"
     "op_cli"
     "1password_ssh"
     "ruby"
@@ -43,7 +43,6 @@ prompt_config() {
     "app_store"
     "claude_code_cli"
     "gemini_cli"
-    "postman_cli"
     "yubikey"
   )
 
@@ -96,7 +95,7 @@ if [[ "${(%):-%N}" == "$0" ]]; then
   prompt_config
 
   # configuration toggles
-  is_enabled "dotfiles" && setup_dotfiles && symlink_antigravity_config
+  is_enabled "dotfiles" && setup_dotfiles
 
   if is_macos; then
     # homebrew
@@ -110,7 +109,7 @@ if [[ "${(%):-%N}" == "$0" ]]; then
   fi
 
   # configure Antigravity as default editor
-  is_enabled "editor" && configure_editor && install_antigravity_extensions && update_antigravity_extensions_list
+  is_enabled "editor" && configure_editor
 
   # docker
   is_enabled "docker" && setup_docker
@@ -128,8 +127,8 @@ if [[ "${(%):-%N}" == "$0" ]]; then
   is_enabled "vim_tmux" && setup_vim_tmux_config
 
   # 1password modules
-  is_enabled "1password" && setup_1password
-  is_enabled "op_cli" && setup_1password_cli
+  is_enabled "1password_gui" && setup_1password
+  is_enabled "1password_cli" && setup_1password_cli
   is_enabled "1password_ssh" && setup_1password_ssh
 
   # gemini CLI
@@ -137,9 +136,6 @@ if [[ "${(%):-%N}" == "$0" ]]; then
 
   # claude code CLI
   is_enabled "claude_code_cli" && install_claude_code_cli
-
-  # postman CLI
-  is_enabled "postman_cli" && install_postman_cli
 
   # setup git hooks
   if [ -d ".git" ]; then

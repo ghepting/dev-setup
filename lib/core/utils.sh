@@ -83,8 +83,15 @@ set_config_value() {
   local value=$2
 
   if grep -q "^${key}=" "$CONFIG_FILE" 2> /dev/null; then
-    sed -i.bak "s|^${key}=.*|${key}=${value}|" "$CONFIG_FILE"
-    rm -f "${CONFIG_FILE}.bak"
+    # Resolve symlink to edit the actual file if necessary
+    local target_file="$CONFIG_FILE"
+    if [[ -L "$CONFIG_FILE" ]]; then
+      target_file=$(readlink "$CONFIG_FILE")
+      [[ "$target_file" != /* ]] && target_file="$(dirname "$CONFIG_FILE")/$target_file"
+    fi
+
+    sed -i.bak "s|^${key}=.*|${key}=${value}|" "$target_file"
+    rm -f "${target_file}.bak"
   else
     echo "${key}=${value}" >> "$CONFIG_FILE"
   fi
@@ -146,19 +153,28 @@ confirm_action() {
 prompt_input() {
   local prompt="$1"
   local default="$2"
-  local reply
+  local reply=""
 
-  # Print prompt to stderr
-  if [[ -n "$default" ]]; then
-    echo -n -e "${prompt} (default: $default): " >&2
-  else
-    echo -n -e "${prompt}: " >&2
-  fi
-
+  # Use vared for tab completion in zsh
   if [[ -n "$ZSH_VERSION" ]]; then
-    read -r reply
+    # Build the prompt string with default shown
+    local prompt_str
+    if [[ -n "$default" ]]; then
+      prompt_str="${prompt} (default: ${default}): "
+    else
+      prompt_str="${prompt}: "
+    fi
+    # vared provides tab completion and line editing
+    # Don't pre-fill reply - let user type or press Enter for default
+    vared -p "$prompt_str" reply
   else
-    read -r reply
+    # Fallback for non-zsh shells
+    if [[ -n "$default" ]]; then
+      echo -n -e "${prompt} (default: $default): " >&2
+    else
+      echo -n -e "${prompt}: " >&2
+    fi
+    read -e -r reply </dev/tty
   fi
 
   # Return the value to stdout (for capture)

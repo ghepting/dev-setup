@@ -1,14 +1,46 @@
 #!/usr/bin/env zsh
 
 setup_dotfiles() {
-  log_note "Setting up dotfiles from ${DOTFILES_REPO}..."
+  log_note "Setting up dotfiles..."
 
-  if [ ! -d "$DOTFILES_DIR" ]; then
-    log_status "Cloning dotfiles repository..."
-    git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
-  else
+  # Prompt for repository URL
+  local repo_reply
+  repo_reply=$(prompt_input "Dotfiles repository URL" "$DOTFILES_REPO")
+  if [[ "$repo_reply" != "$DOTFILES_REPO" ]]; then
+    DOTFILES_REPO="$repo_reply"
+    set_config_value "dotfiles_repo" "$DOTFILES_REPO"
+    log_success "Saved custom repository URL to config"
+  fi
+
+  # Prompt for directory path
+  local dir_reply
+  dir_reply=$(prompt_input "Dotfiles directory path" "$DOTFILES_DIR")
+  # Expand ~ if present
+  dir_reply="${dir_reply/#\~/$HOME}"
+  if [[ "$dir_reply" != "$DOTFILES_DIR" ]]; then
+    DOTFILES_DIR="$dir_reply"
+    set_config_value "dotfiles_dir" "$DOTFILES_DIR"
+    log_success "Saved custom directory path to config"
+  fi
+
+  if [ -d "$DOTFILES_DIR/.git" ]; then
     log_status "Updating dotfiles repository..."
     git -C "$DOTFILES_DIR" pull
+  else
+    if [ -d "$DOTFILES_DIR" ]; then
+      log_warn "Directory $DOTFILES_DIR exists but is not a git repository"
+      if confirm_action "Remove and re-clone?" "y"; then
+        rm -rf "$DOTFILES_DIR"
+        log_status "Cloning dotfiles repository..."
+        git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
+      else
+        log_error "Cannot proceed without a valid dotfiles repository"
+        return 1
+      fi
+    else
+      log_status "Cloning dotfiles repository..."
+      git clone "$DOTFILES_REPO" "$DOTFILES_DIR"
+    fi
   fi
 
   # targets to symlink to $HOME
@@ -21,7 +53,6 @@ setup_dotfiles() {
     ".vimrc.local"
     ".vimrc.bundles.local"
     ".ssh"
-    ".antigravity"
   )
 
   log_info "Configuring symlinks for dotfiles..."
@@ -75,47 +106,4 @@ setup_dotfiles() {
       log_success "${wrapper_dest} symlinked to ${wrapper_source}"
     fi
   fi
-}
-
-symlink_antigravity_config() {
-  local config_dest_base
-  if is_macos; then
-    config_dest_base="$HOME/Library/Application Support/Antigravity/User"
-  elif is_debian; then
-    config_dest_base="$HOME/.config/Antigravity/User"
-  else
-    log_error "Unsupported OS for Antigravity config symlink."
-    return
-  fi
-
-  local config_source="${DOTFILES_DIR}/.antigravity"
-
-  if [ ! -d "$config_source" ]; then
-    log_info "Antigravity directory not found in dotfiles repository, skipping symlink."
-    return
-  fi
-
-  # ensure the destination parent directory exists
-  mkdir -p "$(dirname "$config_dest_base")"
-
-  if [ -L "$config_dest_base" ]; then
-    if [[ "$(readlink "$config_dest_base")" == "$config_source" ]]; then
-      log_status "Using repository for Antigravity config directory"
-      return
-    fi
-  fi
-
-  if [ -e "$config_dest_base" ]; then
-    if ! confirm_action "Antigravity config directory already exists at $config_dest_base. Replace with repository version?" "n"; then
-      log_info "Skipping Antigravity config directory symlink"
-      return
-    fi
-
-    local backup="$config_dest_base.backup.$(date +%Y%m%d_%H%M%S)"
-    mv "$config_dest_base" "$backup"
-    log_info "Backed up existing config directory to $(basename "$backup")"
-  fi
-
-  ln -sf "$config_source" "$config_dest_base"
-  log_success "Antigravity config directory symlinked to repository version"
 }

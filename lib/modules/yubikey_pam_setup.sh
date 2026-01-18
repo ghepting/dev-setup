@@ -72,7 +72,7 @@ setup_yubikey_pam() {
   # Helper to check if already configured
   is_pam_configured() {
     local pam_file=$1
-    sudo grep -q "pam_u2f.so" "$pam_file" 2>/dev/null
+    grep -q "pam_u2f.so" "$pam_file" 2>/dev/null
   }
 
   # Function to safely update PAM config

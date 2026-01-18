@@ -4,7 +4,7 @@ setup_1password_ssh() {
   local SSH_CONFIG_FILE="$HOME/.ssh/config"
 
   # Determine if we should proceed (must have GUI or CLI enabled)
-  if ! is_enabled "1password" && ! is_enabled "op_cli"; then
+  if ! is_enabled "1password_gui" && ! is_enabled "1password_cli"; then
     log_info "1Password SSH configuration skipped (requires 1Password GUI or CLI)"
     return
   fi
@@ -72,11 +72,18 @@ setup_1password_ssh() {
     echo "vault = \"Development\"" >>"$agent_config"
     log_success "Created $agent_config"
   elif ! grep -q "vault = \"Development\"" "$agent_config"; then
+    # Resolve symlink to edit the actual file if necessary
+    local target_file="$agent_config"
+    if [[ -L "$agent_config" ]]; then
+      target_file=$(readlink "$agent_config")
+      [[ "$target_file" != /* ]] && target_file="$(dirname "$agent_config")/$target_file"
+    fi
+
     # replace default vault value with "Development"
     if is_macos; then
-      sed -i '' 's/vault = "[^"]*"/vault = "Development"/' "$agent_config"
+      sed -i '' 's/vault = "[^"]*"/vault = "Development"/' "$target_file"
     else
-      sed -i 's/vault = "[^"]*"/vault = "Development"/' "$agent_config"
+      sed -i 's/vault = "[^"]*"/vault = "Development"/' "$target_file"
     fi
     log_success "Configured $agent_config"
   else

@@ -1,14 +1,35 @@
 configure_editor() {
-  local preferred_editor="agy --wait"
+  preferred_editor="vim"
 
-  if is_debian || is_ssh; then
-    preferred_editor="vim"
-  fi
+  # configure vim as EDITOR in ~/.zshrc
+  if grep -q "^export EDITOR=" "$ZSHRC_FILE"; then
+    # EDITOR is already set, check if it needs updating
+    local current_editor
+    current_editor=$(grep "^export EDITOR=" "$ZSHRC_FILE" | cut -d'"' -f2)
 
-  # configure default EDITOR in ~/.zshrc
-  if ! grep -q "export EDITOR" "$ZSHRC_FILE"; then
+    if [[ "$current_editor" != "$preferred_editor" ]]; then
+      if confirm_action "Update EDITOR to $preferred_editor? (Current EDITOR: $current_editor)" "y"; then
+        # Resolve symlink to edit the actual file if necessary
+        local target_file="$ZSHRC_FILE"
+        if [[ -L "$ZSHRC_FILE" ]]; then
+          target_file=$(readlink "$ZSHRC_FILE")
+          # Handle relative symlink
+          [[ "$target_file" != /* ]] && target_file="$(dirname "$ZSHRC_FILE")/$target_file"
+        fi
+        sed -i '' "s|^export EDITOR=.*|export EDITOR=\"$preferred_editor\"|" "$target_file"
+        log_success "Updated EDITOR to $preferred_editor in $ZSHRC_FILE"
+        RESTART_REQUIRED=true
+      else
+        log_status "Using EDITOR: $current_editor"
+      fi
+    else
+      log_status "Using EDITOR: $preferred_editor"
+    fi
+  else
+    # EDITOR not set, add it
     echo "export EDITOR=\"$preferred_editor\"" >>"$ZSHRC_FILE"
     log_success "Configured $preferred_editor as EDITOR in $ZSHRC_FILE"
+    RESTART_REQUIRED=true
   fi
 
   # macOS-specific file associations
@@ -136,53 +157,5 @@ configure_editor() {
         log_success "Configured Antigravity as default editor for $format files"
       fi
     done
-  fi
-}
-
-install_antigravity_extensions() {
-  local extensions_file="${DOTFILES_DIR}/.antigravity/extensions.txt"
-
-  if [ ! -f "$extensions_file" ]; then
-    log_info "Antigravity extensions list not found in dotfiles repository, skipping installation."
-    return
-  fi
-
-  log_info "Installing Antigravity extensions..."
-
-  local installed_extensions
-  installed_extensions=$(agy --list-extensions 2>/dev/null)
-
-  while read -r extension; do
-    if [ -z "$extension" ]; then
-      continue
-    fi
-
-    if echo "$installed_extensions" | grep -qi "^$extension$"; then
-      log_status "Using $extension"
-    else
-      log_status "Installing $extension"
-      agy --install-extension "$extension" &>/dev/null
-      log_success "Installed $extension"
-    fi
-  done <"$extensions_file"
-}
-
-update_antigravity_extensions_list() {
-  local extensions_file="${DOTFILES_DIR}/.antigravity/extensions.txt"
-
-  log_info "Updating Antigravity extensions list in dotfiles repository..."
-
-  # Ensure the directory exists
-  mkdir -p "$(dirname "$extensions_file")"
-
-  # Redirect stderr to /dev/null because agy is currently emitting V8 fatal errors
-  # but still successfully printing the list to stdout.
-  agy --list-extensions >"$extensions_file" 2>/dev/null
-
-  # Verify if updates were actually written (checking file size)
-  if [[ -s "$extensions_file" ]]; then
-    log_success "Extensions list updated: $(wc -l <"$extensions_file" | xargs) extensions saved."
-  else
-    log_error "Failed to update extensions list (file is empty)."
   fi
 }

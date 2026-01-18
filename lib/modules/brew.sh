@@ -39,13 +39,47 @@ install_homebrew_formulae() {
   log_info "Installing Homebrew formulae..."
   brew bundle --upgrade -q
 
-  log_status "Using iterm2 $(defaults read /Applications/iTerm.app/Contents/Info.plist CFBundleShortVersionString)"
-  log_status "Using $(tmux -V)"
-  log_status "Using vim $(vim --version | head -n 1 | sed -E 's/.*([0-9]+\.[0-9]+).*/\1/')"
-  log_status "Using direnv $(direnv --version)"
-  log_status "Using Antigravity $(agy -v 2>/dev/null | grep -E --color=no '^[0-9]+\.[0-9]+\.[0-9]+$')"
-  log_status "Using Postman $(defaults read /Applications/Postman.app/Contents/Info.plist CFBundleShortVersionString)"
-  log_status "Using $(ngrok --version)"
-  log_status "Using Google Chrome $(defaults read /Applications/Google\ Chrome.app/Contents/Info.plist CFBundleShortVersionString)"
-  log_status "Using Linear $(defaults read /Applications/Linear.app/Contents/Info.plist CFBundleShortVersionString)"
+  # Log installed package versions
+  log_info "Verifying installed versions..."
+
+  # Get all installed formulae and casks with versions in one go
+  local installed_list
+  installed_list=$(brew list --versions && brew list --cask --versions)
+
+  # Function to log version from brew list output
+  log_brew_version() {
+    local name=$1
+    local type=$2 # "formula" or "cask"
+    local version
+
+    version=$(echo "$installed_list" | grep -i "^${name} " | head -n 1 | awk '{print $2}')
+    if [[ -n "$version" ]]; then
+      log_status "Using ${name} ${version} (${type})"
+    fi
+  }
+
+  # Log versions for formulae and casks defined in Brewfile
+  log_brew_version "rbenv" "formula"
+  log_brew_version "ruby-build" "formula"
+  log_brew_version "pyenv" "formula"
+  log_brew_version "iterm2" "cask"
+  log_brew_version "tmux" "formula"
+  log_brew_version "direnv" "formula"
+  log_brew_version "vim" "formula"
+  log_brew_version "the_silver_searcher" "formula"
+  log_brew_version "universal-ctags" "formula"
+  log_brew_version "gh" "formula"
+  log_brew_version "docker-desktop" "cask"
+  log_brew_version "antigravity" "cask"
+  log_brew_version "postman" "cask"
+  log_brew_version "ngrok" "cask"
+  log_brew_version "linear-linear" "cask"
+  log_brew_version "1password" "cask"
+  log_brew_version "google-chrome" "cask"
+  log_brew_version "mas" "formula"
+  log_brew_version "duti" "formula"
+  log_brew_version "google-drive" "cask"
+  log_brew_version "slack" "cask"
+  log_brew_version "ykman" "formula"
+  log_brew_version "pam-u2f" "formula"
 }

@@ -148,7 +148,7 @@ setup() {
   export PLATFORM="macOS"
   is_enabled "docker"
   is_enabled "languages"
-  is_enabled "op_cli"
+  is_enabled "1password_cli"
 }
 
 @test "is_enabled: other modules disabled on Linux by default" {

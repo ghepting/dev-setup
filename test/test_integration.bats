@@ -135,7 +135,6 @@ EOF
   echo "yubikey=false" >> "$CONFIG_FILE"
   echo "gemini_cli=false" >> "$CONFIG_FILE"
   echo "claude_code_cli=false" >> "$CONFIG_FILE"
-  echo "postman_cli=false" >> "$CONFIG_FILE"
 
   cd "$PROJECT_DIR"
   patch_smoke_tests
@@ -206,7 +205,6 @@ EOF
     echo "yubikey=false" >> "$CONFIG_FILE"
     echo "gemini_cli=false" >> "$CONFIG_FILE"
     echo "claude_code_cli=false" >> "$CONFIG_FILE"
-    echo "postman_cli=false" >> "$CONFIG_FILE"
     echo "${module}=true" >> "$CONFIG_FILE"
 
     cd "$PROJECT_DIR"
@@ -227,7 +225,6 @@ EOF
     echo "yubikey=false" >> "$CONFIG_FILE"
     echo "gemini_cli=false" >> "$CONFIG_FILE"
     echo "claude_code_cli=false" >> "$CONFIG_FILE"
-    echo "postman_cli=false" >> "$CONFIG_FILE"
     echo "${module}=false" >> "$CONFIG_FILE"
 
     run ./bin/setup
@@ -291,7 +288,6 @@ EOF
   echo "1password_ssh=false" >> "$CONFIG_FILE"
   echo "gemini_cli=false" >> "$CONFIG_FILE"
   echo "claude_code_cli=false" >> "$CONFIG_FILE"
-  echo "postman_cli=false" >> "$CONFIG_FILE"
   echo "dotfiles=false" >> "$CONFIG_FILE"
   echo "vim_tmux=false" >> "$CONFIG_FILE"
   echo "editor=false" >> "$CONFIG_FILE"
