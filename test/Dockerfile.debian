@@ -15,8 +15,17 @@ RUN apt-get update && apt-get install -y \
 RUN useradd -m -s /usr/bin/zsh tester && \
     echo "tester ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-USER tester
-WORKDIR /home/tester/dev-setup
+# Set up workspace
+WORKDIR /workspace
+COPY . /workspace
+RUN chown -R tester:tester /workspace
 
-# We will mount the current directory here when running
-CMD ["/usr/bin/zsh", "bin/setup"]
+# Switch to test user
+USER tester
+
+# Set environment variables
+ENV HOME=/home/tester
+ENV SHELL=/usr/bin/zsh
+
+# Run the setup script by default
+CMD ["/usr/bin/zsh", "./bin/setup"]

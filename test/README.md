@@ -23,113 +23,121 @@ bats test/test_vars.bats       # Config loading
 bats test/test_integration.bats  # ❌ Don't run this locally
 ```
 
-Integration tests are designed for CI containers only. They actually run `bin/setup` which installs packages and modifies the system.
-
 ## Test Suite Overview
 
 ### Unit Tests (39 tests) - Safe to Run Locally ✓
 
-**`test_detection.bats`** (9 tests)
+- **`test_detection.bats`** (9 tests) - Platform detection
+- **`test_utils.bats`** (20 tests) - Core utilities
+- **`test_vars.bats`** (10 tests) - Config loading
 
-- Platform detection logic
-- Helper functions (`is_macos`, `is_linux`, etc.)
+### Integration Tests (7 tests) - CI/Docker Only ⚠️
 
-**`test_utils.bats`** (20 tests)
+- **`test_integration.bats`** (7 tests) - Full setup smoke tests
+- These run `bin/setup` and modify the system
+- Auto-skip when run locally (not in CI)
 
-- Config file management (`set_config_value`)
-- SSH detection (`is_ssh`)
-- Module enable/disable logic (`is_enabled`)
+## Docker Testing (Recommended for Integration Tests)
 
-**`test_vars.bats`** (10 tests)
+### Quick Start
 
-- Config loading and variable expansion
-- Sanitization of corrupted values
-- Fallback to defaults
-
-### Integration Tests (7 tests) - CI Only ⚠️
-
-**`test_integration.bats`** (7 tests)
-
-- Smoke tests for each platform (macOS, Debian, Arch, Fedora)
-- **These run the actual setup script and modify the system**
-- Only meant for CI containers, not local development
-
-## Running Full Integration Tests in Docker
-
-To test the complete setup in a clean container (like CI does):
-
-### Debian/Ubuntu
+Use the helper script to test on any platform:
 
 ```bash
-# Build the test image
-docker build -t dev-setup-debian -f test/Dockerfile.debian .
+# Test on Debian
+./test/docker-test.sh debian
 
-# Run the full setup in a container
+# Test on Arch Linux
+./test/docker-test.sh arch
+
+# Test on Fedora
+./test/docker-test.sh fedora
+
+# Test on all platforms
+./test/docker-test.sh all
+
+# Start interactive shell for debugging
+./test/docker-test.sh debian shell
+```
+
+### Manual Docker Commands
+
+If you prefer to run Docker commands directly:
+
+```bash
+# Debian
+docker build -t dev-setup-debian -f test/Dockerfile.debian .
 docker run --rm -it dev-setup-debian
 
-# Or run interactively to debug
-docker run --rm -it dev-setup-debian /bin/bash
-# Then inside: cd /workspace && ./bin/setup
+# Arch Linux
+docker build -t dev-setup-arch -f test/Dockerfile.arch .
+docker run --rm -it dev-setup-arch
+
+# Fedora
+docker build -t dev-setup-fedora -f test/Dockerfile.fedora .
+docker run --rm -it dev-setup-fedora
 ```
 
-### Custom Test Scenarios
+### Interactive Debugging
 
 ```bash
-# Mount your local code for live testing
-docker run --rm -it -v $(pwd):/workspace dev-setup-debian
+# Start a shell in the container
+docker run --rm -it dev-setup-debian /bin/bash
 
-# Run with specific environment variables
-docker run --rm -it -e DEV_SETUP_REAL_SYSTEM=true dev-setup-debian
+# Then manually run setup
+cd /workspace
+./bin/setup
 ```
+
+### Live Code Testing
+
+Mount your local code for testing without rebuilding:
+
+```bash
+docker run --rm -it -v $(pwd):/workspace dev-setup-debian
+```
+
+## How It Works
+
+**Developers can run integration tests locally using Docker:**
+
+1. **Build** - Creates a clean container with the platform's base image
+2. **Copy** - Copies your code into `/workspace` in the container
+3. **Run** - Executes `./bin/setup` as a non-root user
+4. **Isolated** - No changes to your host machine
+5. **Disposable** - Container is deleted after run (`--rm` flag)
+
+This gives you the same confidence as CI without affecting your system!
 
 ## Test Philosophy
 
-- **Unit tests**: Cover pure logic functions without complex mocking - **safe to run locally**
-- **Integration tests**: Run actual setup script - **only for CI containers**
-- **CI tests**: Full end-to-end setup on real systems (Ubuntu, Debian containers)
-
-We intentionally avoid:
-
-- Complex mocking of system commands
-- Testing interactive prompts (tested manually)
-- Testing package installation in unit tests (tested in CI)
+- **Unit tests**: Pure logic, no mocking - safe locally
+- **Integration tests**: Full setup - Docker/CI only
+- **Docker tests**: Real systems, isolated containers
 
 ## Writing Tests
 
-Tests use [BATS](https://github.com/bats-core/bats-core) (Bash Automated Testing System).
+Tests use [BATS](https://github.com/bats-core/bats-core).
 
-### Example Unit Test
+### Example
 
 ```bash
 @test "function_name: does something" {
   load_lib "lib/core/utils.sh"
 
-  # Setup
   export SOME_VAR="value"
-
-  # Execute
   run some_function "arg"
 
-  # Assert
   [ "$status" -eq 0 ]
   [[ "$output" == *"expected"* ]]
 }
-```
-
-### Test Helper
-
-Use `load_lib` to source modules with proper environment setup:
-
-```bash
-load_lib "lib/core/utils.sh"
-load_lib "lib/modules/dotfiles.sh"
 ```
 
 ## CI Integration
 
 GitHub Actions runs:
 
-- **Unit tests** on the runner
-- **Integration tests** in Ubuntu/Debian containers
+- Unit tests on the runner
+- Integration tests in Docker containers
 
-See `.github/workflows/ci.yml` for details.
+See `.github/workflows/ci.yml`.

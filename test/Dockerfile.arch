@@ -1,0 +1,30 @@
+FROM archlinux:latest
+
+# Install base dependencies
+RUN pacman -Syu --noconfirm && \
+    pacman -S --noconfirm \
+    base-devel \
+    git \
+    curl \
+    sudo \
+    zsh \
+    vim
+
+# Create a non-root user for testing
+RUN useradd -m -s /bin/zsh tester && \
+    echo "tester ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Set up workspace
+WORKDIR /workspace
+COPY . /workspace
+RUN chown -R tester:tester /workspace
+
+# Switch to test user
+USER tester
+
+# Set environment variables
+ENV HOME=/home/tester
+ENV SHELL=/bin/zsh
+
+# Run the setup script by default
+CMD ["./bin/setup"]
