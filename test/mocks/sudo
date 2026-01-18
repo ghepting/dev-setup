@@ -1,5 +1,0 @@
-#!/usr/bin/env zsh
-# Shift the 'sudo' command itself and echo what was called
-cmd="$1"
-shift
-echo "MOCKED: sudo $cmd $*"

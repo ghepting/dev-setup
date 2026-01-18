@@ -1,3 +1,0 @@
-#!/usr/bin/env zsh
-echo "MOCKED: open $*"
-exit 0

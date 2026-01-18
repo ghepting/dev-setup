@@ -1,7 +1,0 @@
-#!/usr/bin/env zsh
-if [[ "$*" == "list" ]]; then
-  # Return empty list by default to force installs
-  echo ""
-else
-  echo "MOCKED: mas $*"
-fi

@@ -1,6 +1,0 @@
-#!/usr/bin/env zsh
-if [[ -n "$MOCK_UNAME" ]]; then
-  echo "$MOCK_UNAME"
-else
-  /usr/bin/uname "$@"
-fi

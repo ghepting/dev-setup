@@ -1,7 +1,0 @@
-#!/usr/bin/env zsh
-echo "MOCKED: brew $@"
-if [[ "$1" == "list" ]]; then
-  # Fail to simulate package not installed
-  exit 1
-fi
-exit 0

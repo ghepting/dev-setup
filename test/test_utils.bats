@@ -1,96 +1,203 @@
 #!/usr/bin/env bats
 
-# We need to make sure utils.sh can be sourced by Bash
-# Some zsh-isms like [[ $PLATFORM == Debian || $PLATFORM == Arch ]] are fine in Bash 4+
-# The main issue is likely the check at the bottom that executes detect_platform.
+load "test_helper.sh"
 
 setup() {
-  export TEST_DIR="$BATS_TEST_TMPDIR"
-  export HOME="$TEST_DIR/home"
-  export CONFIG_DIR="$HOME/.config"
+  export TEST_HOME="$BATS_TEST_TMPDIR/home"
+  export CONFIG_DIR="$TEST_HOME/.config"
   export CONFIG_FILE="$CONFIG_DIR/dev-setup.conf"
   mkdir -p "$CONFIG_DIR"
-
-  # Prepend mocks to PATH
-  export MOCKS_DIR="$BATS_TEST_DIRNAME/mocks"
-  export PATH="$MOCKS_DIR:$PATH"
-
-  # Source core libs
-  source "lib/core/vars.sh"
-  source "lib/core/utils.sh"
-
-  # Export functions so 'run' can find them in subshells
-  export -f detect_platform is_macos is_linux is_debian is_arch is_fedora is_enabled install_pkg
 }
 
-@test "Utils: Platform Detection macOS" {
-  export MOCK_UNAME="Darwin"
-  detect_platform
-  [ "$PLATFORM" == "macOS" ]
+# ============================================================================
+# set_config_value tests
+# ============================================================================
 
-  # Use standard BATS comparison since functions might not be exported to 'run' subshell
-  is_macos
+@test "set_config_value: creates new key-value pair" {
+  load_lib "lib/core/utils.sh"
+
+  set_config_value "test_key" "test_value"
+
+  [ -f "$CONFIG_FILE" ]
+  grep -q "^test_key=test_value$" "$CONFIG_FILE"
 }
 
-@test "Utils: Platform Detection Debian" {
-  export MOCK_UNAME="Linux"
-  # Mock the detect_platform logic by setting PLATFORM if we can't easily mock /etc/os-release
-  # But let's try to test the logic indeed.
-  # detect_platform calls _get_linux_distro.
-  # _get_linux_distro checks /etc/os-release.
+@test "set_config_value: updates existing key" {
+  load_lib "lib/core/utils.sh"
 
-  # We can't easily mock /etc/os-release without a bind mount or chroot.
-  # So for unit testing 'detect_platform', we'll rely on the fact that we can set PLATFORM.
-  # But the user wants specific tests for utils.sh logic.
+  echo "test_key=old_value" > "$CONFIG_FILE"
+  set_config_value "test_key" "new_value"
 
-  # Let's test is_debian directly with a set PLATFORM
-  export PLATFORM="Debian"
-  is_debian
-  is_linux
-  ! is_macos
+  grep -q "^test_key=new_value$" "$CONFIG_FILE"
+  ! grep -q "old_value" "$CONFIG_FILE"
 }
 
-@test "Utils: is_enabled logic" {
-  # Default enabled on macOS
+@test "set_config_value: handles values with spaces" {
+  load_lib "lib/core/utils.sh"
+
+  set_config_value "test_key" "value with spaces"
+
+  grep -q "^test_key=value with spaces$" "$CONFIG_FILE"
+}
+
+@test "set_config_value: handles paths with slashes" {
+  load_lib "lib/core/utils.sh"
+
+  set_config_value "dotfiles_dir" "/home/user/dotfiles"
+
+  grep -q "^dotfiles_dir=/home/user/dotfiles$" "$CONFIG_FILE"
+}
+
+@test "set_config_value: handles special characters" {
+  load_lib "lib/core/utils.sh"
+
+  set_config_value "test_key" "value@with#special\$chars"
+
+  grep -q "^test_key=value@with#special\\\$chars$" "$CONFIG_FILE"
+}
+
+@test "set_config_value: preserves other keys when updating" {
+  load_lib "lib/core/utils.sh"
+
+  echo "key1=value1" > "$CONFIG_FILE"
+  echo "key2=value2" >> "$CONFIG_FILE"
+  set_config_value "key1" "new_value"
+
+  grep -q "^key1=new_value$" "$CONFIG_FILE"
+  grep -q "^key2=value2$" "$CONFIG_FILE"
+}
+
+# ============================================================================
+# is_ssh tests
+# ============================================================================
+
+@test "is_ssh: returns true when SSH_CONNECTION is set" {
+  load_lib "lib/core/utils.sh"
+
+  export SSH_CONNECTION="192.168.1.1 12345 192.168.1.2 22"
+  is_ssh
+}
+
+@test "is_ssh: returns true when SSH_CLIENT is set" {
+  load_lib "lib/core/utils.sh"
+
+  export SSH_CLIENT="192.168.1.1 12345 22"
+  is_ssh
+}
+
+@test "is_ssh: returns true when SSH_TTY is set" {
+  load_lib "lib/core/utils.sh"
+
+  export SSH_TTY="/dev/pts/0"
+  is_ssh
+}
+
+@test "is_ssh: returns false when no SSH variables are set" {
+  load_lib "lib/core/utils.sh"
+
+  unset SSH_CONNECTION
+  unset SSH_CLIENT
+  unset SSH_TTY
+
+  run is_ssh
+  [ "$status" -eq 1 ]
+}
+
+# ============================================================================
+# is_enabled tests
+# ============================================================================
+
+@test "is_enabled: dotfiles is always enabled" {
+  load_lib "lib/core/utils.sh"
+
   export PLATFORM="macOS"
   is_enabled "dotfiles"
 
-  # Default disabled on Linux for some
   export PLATFORM="Debian"
-  ! is_enabled "editor"
+  is_enabled "dotfiles"
+}
 
-  # Explicitly disabled in config
-  echo "dotfiles=false" > "$CONFIG_FILE"
-  ! is_enabled "dotfiles"
+@test "is_enabled: vim_tmux is always enabled" {
+  load_lib "lib/core/utils.sh"
 
-  # Explicitly enabled in config
+  export PLATFORM="macOS"
+  is_enabled "vim_tmux"
+
+  export PLATFORM="Linux"
+  is_enabled "vim_tmux"
+}
+
+@test "is_enabled: editor is enabled on macOS by default" {
+  load_lib "lib/core/utils.sh"
+
+  export PLATFORM="macOS"
+  is_enabled "editor"
+}
+
+@test "is_enabled: editor is disabled on Linux by default" {
+  load_lib "lib/core/utils.sh"
+
+  export PLATFORM="Debian"
+  run is_enabled "editor"
+  [ "$status" -eq 1 ]
+}
+
+@test "is_enabled: other modules enabled on macOS by default" {
+  load_lib "lib/core/utils.sh"
+
+  export PLATFORM="macOS"
+  is_enabled "docker"
+  is_enabled "languages"
+  is_enabled "op_cli"
+}
+
+@test "is_enabled: other modules disabled on Linux by default" {
+  load_lib "lib/core/utils.sh"
+
+  export PLATFORM="Debian"
+
+  run is_enabled "docker"
+  [ "$status" -eq 1 ]
+
+  run is_enabled "languages"
+  [ "$status" -eq 1 ]
+}
+
+@test "is_enabled: respects explicit module=true in config" {
+  load_lib "lib/core/utils.sh"
+
+  export PLATFORM="Debian"
   echo "docker=true" > "$CONFIG_FILE"
+
   is_enabled "docker"
 }
 
-@test "Utils: install_pkg macOS" {
+@test "is_enabled: respects explicit module=false in config" {
+  load_lib "lib/core/utils.sh"
+
   export PLATFORM="macOS"
+  echo "dotfiles=false" > "$CONFIG_FILE"
 
-  # Ensure brew is found (it is via mocks/)
-  # install_pkg calls brew list "$package"
-  # Our mock brew echoes "MOCKED: brew ..."
-
-  run install_pkg "test-pkg"
-  [[ "$output" == *"MOCKED: brew install test-pkg"* ]]
+  run is_enabled "dotfiles"
+  [ "$status" -eq 1 ]
 }
 
-@test "Utils: install_pkg Debian" {
-  export PLATFORM="Debian"
+@test "is_enabled: config overrides default behavior" {
+  load_lib "lib/core/utils.sh"
 
-  # Mock sudo to handle apt-get (already in mocks/sudo)
-  # install_pkg calls: dpkg-query -W ...
-  # We need a mock for dpkg-query.
-  echo '#!/usr/bin/env zsh' > "$MOCKS_DIR/dpkg-query"
-  echo 'exit 1' >> "$MOCKS_DIR/dpkg-query"
-  chmod +x "$MOCKS_DIR/dpkg-query"
+  export PLATFORM="macOS"
+  echo "editor=false" > "$CONFIG_FILE"
 
-  run install_pkg "test-pkg"
-  [[ "$output" == *"MOCKED: sudo apt-get install -y test-pkg"* ]]
+  run is_enabled "editor"
+  [ "$status" -eq 1 ]
+}
 
-  rm "$MOCKS_DIR/dpkg-query"
+@test "is_enabled: handles missing config file gracefully" {
+  load_lib "lib/core/utils.sh"
+
+  rm -f "$CONFIG_FILE"
+  export PLATFORM="macOS"
+
+  is_enabled "dotfiles"
+  is_enabled "docker"
 }

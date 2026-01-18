@@ -1,5 +1,0 @@
-#!/usr/bin/env zsh
-echo "MOCKED: op $*"
-if [[ "$1" == "whoami" ]]; then
-  exit 0
-fi

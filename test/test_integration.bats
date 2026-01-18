@@ -1,6 +1,12 @@
 #!/usr/bin/env bats
 
 setup() {
+  # Skip integration tests unless running in CI
+  # These tests run the actual setup script and modify the system
+  if [[ -z "${CI:-}" ]]; then
+    skip "Integration tests only run in CI. Use: bats test/test_{detection,utils,vars}.bats for local testing"
+  fi
+
   export TEST_DIR="$BATS_TEST_TMPDIR"
   export HOME="$TEST_DIR/home"
   export CONFIG_DIR="$HOME/.config"
@@ -148,7 +154,6 @@ EOF
   echo "docker=false" >> "$CONFIG_FILE"
 
   # Mock apt-get
-  ln -sf "$MOCKS_DIR/sudo" "$MOCKS_DIR/apt-get"
 
   cd "$PROJECT_DIR"
   patch_smoke_tests
