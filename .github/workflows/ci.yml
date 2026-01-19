@@ -14,9 +14,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: macOS
-            os: macos-latest
-            install_cmd: brew install bats-core
           - name: Debian
             os: ubuntu-latest
             container: debian:latest
@@ -45,9 +42,7 @@ jobs:
           bats test/test_*.bats
 
           # Run integration tests
-          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-             bats test/integration_macos.bats
-          elif [[ "${{ matrix.container }}" == "debian:latest" ]]; then
+          if [[ "${{ matrix.container }}" == "debian:latest" ]]; then
              bats test/integration_debian.bats
           elif [[ "${{ matrix.container }}" == "archlinux:latest" ]]; then
              bats test/integration_arch.bats

@@ -13,8 +13,13 @@ install_homebrew() {
       eval "$(/usr/local/bin/brew shellenv)"
     fi
   else
-    log_info "Updating Homebrew..."
-    brew update &>/dev/null
+    log_info "DEBUG: SKIP_BREW_UPDATE is '${SKIP_BREW_UPDATE:-}'"
+    if [[ "${SKIP_BREW_UPDATE:-false}" != "true" ]]; then
+      log_info "Updating Homebrew..."
+      brew update &>/dev/null
+    else
+      log_info "Skipping Homebrew update (SKIP_BREW_UPDATE=true)..."
+    fi
   fi
   log_status "Using Homebrew $(brew --version)"
 }
