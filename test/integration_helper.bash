@@ -43,7 +43,18 @@ setup_macos_project() {
   cp -r "$BATS_TEST_DIRNAME/../bin" "$PROJECT_DIR/"
   cp -r "$BATS_TEST_DIRNAME/../lib" "$PROJECT_DIR/"
   cp "$BATS_TEST_DIRNAME/../dev-setup.conf" "$PROJECT_DIR/"
+
+  # Copy dependency files
+  if [[ -f "$BATS_TEST_DIRNAME/../Brewfile" ]]; then
+    cp "$BATS_TEST_DIRNAME/../Brewfile" "$PROJECT_DIR/"
+  fi
+
+  if [[ -f "$BATS_TEST_DIRNAME/../.ruby-version" ]]; then
+    cp "$BATS_TEST_DIRNAME/../.ruby-version" "$PROJECT_DIR/"
+  else
+    echo "3.0.0" > "$PROJECT_DIR/.ruby-version"
+  fi
+
   chmod +x "$PROJECT_DIR/bin/setup"
   find "$PROJECT_DIR/lib" -name "*.sh" -exec chmod +x {} +
-  touch "$PROJECT_DIR/.ruby-version"
 }

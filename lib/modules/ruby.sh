@@ -28,9 +28,22 @@ install_rbenv_and_ruby() {
 
   # install ruby
   RUBY_VERSION=$(cat .ruby-version)
+
+  # Check for latest stable version
+  log_info "Checking for latest stable Ruby version..."
+  local latest_ruby
+  latest_ruby=$(rbenv install --list | grep -E "^\s*[0-9]+\.[0-9]+\.[0-9]+$" | tr -d ' ' | sort -V | tail -1)
+
+  if [[ -n "$latest_ruby" && "$latest_ruby" != "$RUBY_VERSION" ]]; then
+    if confirm_action "Latest stable Ruby is $latest_ruby (current: $RUBY_VERSION). Update .ruby-version?" "n"; then
+      echo "$latest_ruby" > .ruby-version
+      RUBY_VERSION="$latest_ruby"
+      log_success "Updated .ruby-version to $latest_ruby"
+    fi
+  fi
+
   if [[ "$(rbenv version-name)" == "$RUBY_VERSION" ]] &> /dev/null; then
     log_status "Using ruby $(rbenv version-name)"
-
   else
     log_info "Installing ruby $RUBY_VERSION..."
     if rbenv install $RUBY_VERSION -s && rbenv global $RUBY_VERSION &> /dev/null; then

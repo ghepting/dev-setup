@@ -17,7 +17,7 @@ setup() {
   echo "1password_ssh=false" >> "$CONFIG_FILE"
   echo "app_store=false" >> "$CONFIG_FILE"
   echo "docker=false" >> "$CONFIG_FILE"
-  echo "ruby=true" >> "$CONFIG_FILE"   # Test real ruby installation if possible
+  echo "ruby=false" >> "$CONFIG_FILE"   # Disable heavy ruby install for smoke test
   echo "python=false" >> "$CONFIG_FILE"
   echo "node=false" >> "$CONFIG_FILE"
   echo "vim_tmux=false" >> "$CONFIG_FILE"
