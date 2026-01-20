@@ -31,14 +31,22 @@ setup_iterm_colors() {
 
     if [ "$need_dark" = true ]; then
       log_status "Importing $dark_preset..."
-      open -a "/Applications/iTerm.app" "$presets_dir/$dark_preset.itermcolors"
+      if [[ -d "/Applications/iTerm.app" ]]; then
+        open -a "/Applications/iTerm.app" "$presets_dir/$dark_preset.itermcolors"
+      else
+        log_warn "iTerm.app not found, skipping import."
+      fi
     else
       log_info "$dark_preset already installed."
     fi
 
     if [ "$need_light" = true ]; then
       log_status "Importing $light_preset..."
-      open -a "/Applications/iTerm.app" "$presets_dir/$light_preset.itermcolors"
+      if [[ -d "/Applications/iTerm.app" ]]; then
+        open -a "/Applications/iTerm.app" "$presets_dir/$light_preset.itermcolors"
+      else
+        log_warn "iTerm.app not found, skipping import."
+      fi
     else
       log_info "$light_preset already installed."
     fi
