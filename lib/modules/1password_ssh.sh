@@ -50,17 +50,9 @@ setup_1password_ssh() {
     log_status "Using 1Password SSH agent"
   fi
 
-  # configure environment variable (Idempotent)
-  # ensure SSH_AUTH_SOCK is exported in .zshrc
-  local export_cmd="export SSH_AUTH_SOCK=\"$sock_path\""
-
-  if ! grep -qF "export SSH_AUTH_SOCK" "$ZSHRC_FILE"; then
-    echo '' >>"$ZSHRC_FILE"
-    echo '# 1password' >>"$ZSHRC_FILE"
-    echo "$export_cmd" >>"$ZSHRC_FILE"
-    log_success "Added SSH_AUTH_SOCK export to $ZSHRC_FILE"
-    RESTART_REQUIRED=true
-  fi
+  # ensure SSH_AUTH_SOCK is exported in .zshrc.dev
+  install_zsh_config "1password_ssh"
+  ensure_zshrc_dev_sourced
 
   # verify that agent.toml exists and is configured with correct "Development" vault
   local agent_config="$HOME/.config/1Password/ssh/agent.toml"

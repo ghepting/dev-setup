@@ -86,6 +86,21 @@ prompt_config() {
         set_config_value "$module" "false"
     fi
   done
+
+  # Enforce Dependencies
+  # gemini_cli requires node
+  if is_enabled "gemini_cli" && ! is_enabled "node"; then
+    log_warn "Gemini CLI requires Node.js (currently disabled)."
+    if confirm_action "  Enable Node.js?" "y"; then
+      set_config_value "node" "true"
+      log_success "Enabled Node.js dependency."
+    else
+      log_warn "Gemini CLI cannot function without Node.js."
+      log_warn "Disabling Gemini CLI configuration."
+      set_config_value "gemini_cli" "false"
+    fi
+  fi
+
   log_success "Configuration updated."
 }
 

@@ -21,16 +21,9 @@ install_pyenv_and_python() {
     eval "$(pyenv init -)"
   fi
 
-  # add pyenv init to .zshrc
-  if ! grep -q "pyenv init" "$ZSHRC_FILE"; then
-    echo '' >> "$ZSHRC_FILE"
-    echo '# pyenv' >> "$ZSHRC_FILE"
-    echo 'export PYENV_ROOT="$HOME/.pyenv"' >> "$ZSHRC_FILE"
-    echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> "$ZSHRC_FILE"
-    echo 'eval "$(pyenv init - zsh)"' >> "$ZSHRC_FILE"
-    log_success "Added pyenv init to .zshrc"
-    RESTART_REQUIRED=true
-  fi
+  # add pyenv init to .zshrc.dev
+  install_zsh_config "pyenv"
+  ensure_zshrc_dev_sourced
 
   # look for a .python-version file, otherwise default to a stable 3.x version
   PYTHON_VERSION=$(cat .python-version 2> /dev/null || echo "3.14.2")

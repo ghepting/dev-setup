@@ -196,3 +196,150 @@ wait_for_enter() {
     read -r
   fi
 }
+
+# ZSH Configuration Management
+
+ensure_zshrc_dev_sourced() {
+  # Ensure .zshrc sources .zshrc.dev
+  # Check for common variations:
+  # source "$HOME/.zshrc.dev"
+  # source ~/.zshrc.dev
+  # source /full/path/.zshrc.dev
+
+  if ! grep -q -E "source .*\.zshrc\.dev" "$ZSHRC_FILE"; then
+    echo '' >>"$ZSHRC_FILE"
+    echo "source \"\$HOME/.zshrc.dev\"" >>"$ZSHRC_FILE"
+    log_success "Added source of .zshrc.dev to .zshrc"
+    RESTART_REQUIRED=true
+  fi
+}
+
+ensure_zshrc_header() {
+  local header_line="# This file is managed by dev-setup. Do not edit manually."
+
+  if [ ! -f "$ZSHRC_DEV_FILE" ]; then
+    touch "$ZSHRC_DEV_FILE"
+  fi
+
+  # Read first line
+  local first_line
+  first_line=$(head -n 1 "$ZSHRC_DEV_FILE")
+
+  if [[ "$first_line" != "$header_line" ]]; then
+    # Prepend header
+    local temp_file="${ZSHRC_DEV_FILE}.tmp"
+    echo "$header_line" > "$temp_file"
+    echo "# Any changes made here may be overwritten." >> "$temp_file"
+    echo "" >> "$temp_file"
+    cat "$ZSHRC_DEV_FILE" >> "$temp_file"
+    mv "$temp_file" "$ZSHRC_DEV_FILE"
+  fi
+}
+
+install_zsh_config() {
+  local config_name="$1"
+  local template_file="$ZSHRC_TEMPLATES_DIR/$config_name"
+
+  if [ ! -f "$template_file" ]; then
+    log_error "Template $template_file not found."
+    return 1
+  fi
+
+  # Ensure .zshrc.dev exists and has header
+  ensure_zshrc_header
+
+  # Read template content
+  local content
+  content=$(<"$template_file")
+
+  # Extract markers
+  local start_marker
+  start_marker=$(head -n 1 "$template_file")
+  local end_marker
+  end_marker=$(tail -n 1 "$template_file")
+
+  # Validate markers
+  if [[ "$start_marker" != \#* || "$end_marker" != \#* ]]; then
+    log_warn "Template $config_name does not have valid start/end markers. Appending without replacement logic."
+    if [ -s "$ZSHRC_DEV_FILE" ]; then echo "" >> "$ZSHRC_DEV_FILE"; fi
+    cat "$template_file" >> "$ZSHRC_DEV_FILE"
+    return 0
+  fi
+
+  # Check if block exists
+  if grep -qF "$start_marker" "$ZSHRC_DEV_FILE"; then
+    # Block exists, replace it
+    local temp_file="${ZSHRC_DEV_FILE}.tmp"
+
+    # Identify positions
+    local start_line
+    start_line=$(grep -nF "$start_marker" "$ZSHRC_DEV_FILE" | head -n 1 | cut -d: -f1)
+
+    # We construct the new file
+    # 1. Content before the block
+    if [[ "$start_line" -gt 1 ]]; then
+      sed -n "1,$((start_line - 1))p" "$ZSHRC_DEV_FILE" > "$temp_file"
+      # FORCE BLANK LINE SEPARATION
+      if [ -s "$temp_file" ] && [ "$(tail -n 1 "$temp_file" | wc -l)" -gt 0 ]; then
+          # Check if lines are not blank? Or just ensure blank.
+          # Easier: if the last line isn't blank, append newline.
+          # tail -n 1 returns the last line.
+          # [[ -n "$(tail -n 1 file)" ]] checks if not empty string.
+          if [[ -n "$(tail -n 1 "$temp_file")" ]]; then
+              echo "" >> "$temp_file"
+          fi
+      fi
+    else
+      : > "$temp_file"
+    fi
+
+    # 2. The new content
+    cat "$template_file" >> "$temp_file"
+
+    # 3. Content after the block
+    # Find end marker that appears after start_line
+    local end_line
+    end_line=$(awk -v start="$start_line" -v marker="$end_marker" 'NR > start && $0 == marker {print NR; exit}' "$ZSHRC_DEV_FILE")
+
+    if [[ -n "$end_line" ]]; then
+       # Append everything after end_line
+       # Check if there are lines after
+       local total_lines
+       total_lines=$(wc -l < "$ZSHRC_DEV_FILE")
+       if [[ "$total_lines" -gt "$end_line" ]]; then
+         sed -n "$((end_line + 1)),\$p" "$ZSHRC_DEV_FILE" >> "$temp_file"
+       fi
+    else
+       # If no end marker found, we can't safely preserve what follows (or maybe it was truncated).
+       # For safety, let's just warn and append rest? Or assume previous block went to end.
+       log_warn "Could not find closing marker for $config_name. Replacing up to end of file."
+    fi
+
+    mv "$temp_file" "$ZSHRC_DEV_FILE"
+    log_status "Updated $config_name config in .zshrc.dev"
+    RESTART_REQUIRED=true
+
+  else
+    # Block does not exist, append it
+    # Avoid adding leading newline if file is empty
+    if [ -s "$ZSHRC_DEV_FILE" ]; then
+       # Check if the last character is a newline.
+       # And ensure we have a blank line separator.
+
+       # If last line is empty, we already have separation?
+       # Let's ensure we add a newline if the file doesn't end with TWO newlines?
+       # Simplest: Just append a newline, then content.
+       # If the user wants a visible gap (empty line), we need \n\n if the file currently ends in text.
+
+       # Check current tail
+       if [ "$(tail -c 1 "$ZSHRC_DEV_FILE" | wc -l)" -eq 0 ]; then
+          echo "" >> "$ZSHRC_DEV_FILE"
+       fi
+       echo "" >> "$ZSHRC_DEV_FILE"
+    fi
+
+    cat "$template_file" >> "$ZSHRC_DEV_FILE"
+    log_success "Added $config_name config to .zshrc.dev"
+    RESTART_REQUIRED=true
+  fi
+}

@@ -20,18 +20,9 @@ install_homebrew() {
 }
 
 install_homebrew_path() {
-  # ensure ~/.zshrc exists for initial setup
-  touch "$ZSHRC_FILE"
-
-  # ensure brew bins are added to $PATH
-  BREW_PREFIX_CMD='PATH="$(brew --prefix)/bin:$PATH" && export PATH'
-  if ! grep -qF "$BREW_PREFIX_CMD" "$ZSHRC_FILE"; then
-    echo '' >>"$ZSHRC_FILE"
-    echo '# homebrew' >>"$ZSHRC_FILE"
-    echo "$BREW_PREFIX_CMD" >>"$ZSHRC_FILE"
-    log_success "Homebrew PATH line added to $ZSHRC_FILE."
-    RESTART_REQUIRED=true
-  fi
+  # ensure brew config is in .zshrc.dev
+  install_zsh_config "brew"
+  ensure_zshrc_dev_sourced
 }
 
 install_homebrew_formulae() {

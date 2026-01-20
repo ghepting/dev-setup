@@ -17,6 +17,17 @@ RESTART_REQUIRED=false
 CONFIG_DIR="${HOME}/.config"
 CONFIG_FILE="${CONFIG_DIR}/dev-setup.conf"
 
+# Calculate the repository root (3 levels up from lib/core/vars.sh)
+CURRENT_DIR="${0:A:h}"
+if [[ "$CURRENT_DIR" == *"lib/core"* ]]; then
+  REPO_ROOT="${CURRENT_DIR%/lib/core*}"
+else
+  # Fallback if sourced differently, assume current directory if it looks right, or rely on setup script
+  REPO_ROOT="${PWD}"
+fi
+ZSHRC_TEMPLATES_DIR="${REPO_ROOT}/zshrc"
+ZSHRC_DEV_FILE="${HOME}/.zshrc.dev"
+
 # Load dotfiles config from file if it exists
 if [ -f "$CONFIG_FILE" ]; then
   # We grep instead of sourcing to avoid executing arbitrary code

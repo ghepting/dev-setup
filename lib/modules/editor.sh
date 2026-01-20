@@ -1,36 +1,9 @@
 configure_editor() {
   preferred_editor="vim"
 
-  # configure vim as EDITOR in ~/.zshrc
-  if grep -q "^export EDITOR=" "$ZSHRC_FILE"; then
-    # EDITOR is already set, check if it needs updating
-    local current_editor
-    current_editor=$(grep "^export EDITOR=" "$ZSHRC_FILE" | cut -d'"' -f2)
-
-    if [[ "$current_editor" != "$preferred_editor" ]]; then
-      if confirm_action "Update EDITOR to $preferred_editor? (Current EDITOR: $current_editor)" "y"; then
-        # Resolve symlink to edit the actual file if necessary
-        local target_file="$ZSHRC_FILE"
-        if [[ -L "$ZSHRC_FILE" ]]; then
-          target_file=$(readlink "$ZSHRC_FILE")
-          # Handle relative symlink
-          [[ "$target_file" != /* ]] && target_file="$(dirname "$ZSHRC_FILE")/$target_file"
-        fi
-        sed -i '' "s|^export EDITOR=.*|export EDITOR=\"$preferred_editor\"|" "$target_file"
-        log_success "Updated EDITOR to $preferred_editor in $ZSHRC_FILE"
-        RESTART_REQUIRED=true
-      else
-        log_status "Using EDITOR: $current_editor"
-      fi
-    else
-      log_status "Using EDITOR: $preferred_editor"
-    fi
-  else
-    # EDITOR not set, add it
-    echo "export EDITOR=\"$preferred_editor\"" >>"$ZSHRC_FILE"
-    log_success "Configured $preferred_editor as EDITOR in $ZSHRC_FILE"
-    RESTART_REQUIRED=true
-  fi
+  # configure vim as EDITOR in ~/.zshrc.dev
+  install_zsh_config "editor"
+  ensure_zshrc_dev_sourced
 
   # macOS-specific file associations
   if is_macos; then
