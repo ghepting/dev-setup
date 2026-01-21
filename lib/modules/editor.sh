@@ -3,6 +3,8 @@ configure_editor() {
 
   # configure vim as EDITOR in ~/.zshrc.dev
   install_zsh_config "editor"
+  # configure agy bin PATH or alias in ~/.zshrc.dev
+  install_zsh_config "agy"
   ensure_zshrc_dev_sourced
 
   # macOS-specific file associations

@@ -1,3 +1,7 @@
 # agy:start
   export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
+
+  if ! command -v agy &>/dev/null; then
+    alias agy="antigravity"
+  fi
 # agy:end
