@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/ghepting/dev-setup/compare/v1.0.0...v1.0.1) (2026-01-21)
+
+
+### Bug Fixes
+
+* ensure agy alias is setup for dists without it (dnf on fedora for example seems to only come with antigravity bin, unlike homebrew formula) ([f9d37b9](https://github.com/ghepting/dev-setup/commit/f9d37b9236bb0212a3adc71f2422745074f551a1))
+
 ## [1.0.0](https://github.com/ghepting/dev-setup/compare/v0.2.0...v1.0.0) (2026-01-20)
 
 
